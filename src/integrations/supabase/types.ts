@@ -14,7 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      predictions: {
+        Row: {
+          away_pred: number
+          created_at: string
+          home_pred: number
+          id: string
+          match_id: string
+          player_name: string
+          updated_at: string
+        }
+        Insert: {
+          away_pred: number
+          created_at?: string
+          home_pred: number
+          id?: string
+          match_id: string
+          player_name: string
+          updated_at?: string
+        }
+        Update: {
+          away_pred?: number
+          created_at?: string
+          home_pred?: number
+          id?: string
+          match_id?: string
+          player_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
