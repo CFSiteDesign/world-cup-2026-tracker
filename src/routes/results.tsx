@@ -92,6 +92,9 @@ function ResultsPage() {
             <Link to="/predict" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
               Predict
             </Link>
+            <Link to="/leaderboard" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
+              Board
+            </Link>
             <div className="label-micro hidden sm:block">{TIMEZONES[region].label}</div>
             <div className="relative inline-flex p-1 rounded-full bg-card ring-hairline">
               <div

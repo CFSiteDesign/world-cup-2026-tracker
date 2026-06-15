@@ -118,6 +118,9 @@ function PredictPage() {
             <Link to="/bracket" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
               Bracket
             </Link>
+            <Link to="/leaderboard" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
+              Board
+            </Link>
             <Link to="/results" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
               Results
             </Link>
