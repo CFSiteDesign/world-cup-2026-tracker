@@ -139,21 +139,37 @@ function BracketPage() {
           </div>
         </div>
 
-        {/* Desktop: column grid · Mobile: horizontal snap scroll */}
-        <div className="-mx-4 sm:mx-0 overflow-x-auto sm:overflow-visible snap-x snap-mandatory">
-          <div className="flex sm:grid sm:grid-cols-6 gap-3 sm:gap-4 px-4 sm:px-0 min-w-min">
-            {KO_STAGES.map(stage => (
-              <Column
-                key={stage}
-                stage={stage}
-                ties={byStage.get(stage) ?? []}
-                now={now}
-                teamView={teamView}
-                isEnglandTie={isEnglandTie}
-                feederIds={feederIds}
-              />
-            ))}
-          </div>
+        {/* Mobile: vertical accordion by round · Desktop: 6-column grid */}
+        <div className="sm:hidden space-y-3">
+          {KO_STAGES.map(stage => (
+            <RoundAccordion
+              key={stage}
+              stage={stage}
+              ties={byStage.get(stage) ?? []}
+              now={now}
+              teamView={teamView}
+              isEnglandTie={isEnglandTie}
+              feederIds={feederIds}
+              defaultOpen={
+                // open the round England are next in, else R32
+                stage === (englandNextKO?.stage ?? "Round of 32")
+              }
+            />
+          ))}
+        </div>
+
+        <div className="hidden sm:grid sm:grid-cols-6 gap-4">
+          {KO_STAGES.map(stage => (
+            <Column
+              key={stage}
+              stage={stage}
+              ties={byStage.get(stage) ?? []}
+              now={now}
+              teamView={teamView}
+              isEnglandTie={isEnglandTie}
+              feederIds={feederIds}
+            />
+          ))}
         </div>
 
         <div className="hairline-t pt-4 label-micro">
@@ -161,6 +177,66 @@ function BracketPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+function RoundAccordion({ stage, ties, now, teamView, isEnglandTie, feederIds, defaultOpen }: {
+  stage: Stage;
+  ties: Match[];
+  now: Date;
+  teamView: TeamView;
+  isEnglandTie: (m: Match) => boolean;
+  feederIds: Set<string>;
+  defaultOpen: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const hasEngland = ties.some(isEnglandTie);
+  const liveCount = ties.filter(m => matchStatus(m, now) === "LIVE").length;
+
+  return (
+    <section className={`rounded-xl bg-card shadow-card ${hasEngland ? "ring-1 ring-pitch" : "ring-hairline"}`}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
+        aria-expanded={open}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={`font-display text-xs font-extrabold uppercase tracking-[0.14em] ${hasEngland ? "text-pitch" : ""}`}>
+            {SHORT[stage]}
+          </span>
+          <span className="text-muted-foreground/60">·</span>
+          <span className="label-micro">{ties.length} {ties.length === 1 ? "tie" : "ties"}</span>
+          {liveCount > 0 && (
+            <span className="inline-flex items-center gap-1 ml-1">
+              <span className="size-1 rounded-full bg-pitch animate-live" />
+              <span className="font-display text-[10px] font-extrabold uppercase tracking-[0.12em] text-pitch">{liveCount}</span>
+            </span>
+          )}
+        </div>
+        <span className={`font-display text-xs font-extrabold text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
+          ▾
+        </span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-2.5 hairline-t pt-3">
+          {ties.length === 0 ? (
+            <div className="label-micro px-1">To be scheduled</div>
+          ) : (
+            ties.map(m => (
+              <TieCard
+                key={m.id}
+                match={m}
+                now={now}
+                teamView={teamView}
+                isEngland={isEnglandTie(m)}
+                isFeeder={feederIds.has(m.id)}
+              />
+            ))
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -173,7 +249,7 @@ function Column({ stage, ties, now, teamView, isEnglandTie, feederIds }: {
   feederIds: Set<string>;
 }) {
   return (
-    <section className="shrink-0 snap-start w-[78vw] sm:w-auto">
+    <section className="w-full">
       <div className="label-micro mb-3 flex items-center gap-2">
         <span>{SHORT[stage]}</span>
         <span className="text-muted-foreground/60">·</span>
