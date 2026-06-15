@@ -93,22 +93,22 @@ function PredictPage() {
   return (
     <div className="relative min-h-screen bg-broadcast bg-grain">
       <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl hairline-b">
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="size-9 rounded-lg bg-card grid place-items-center ring-hairline">
+        <div className="max-w-6xl mx-auto px-3 sm:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0">
+            <div className="size-8 sm:size-9 rounded-lg bg-card grid place-items-center ring-hairline shrink-0">
               <span className="font-display text-[10px] font-extrabold text-pitch">PRD</span>
             </div>
-            <div className="leading-none">
-              <div className="font-display text-xl font-extrabold tracking-tight uppercase">
+            <div className="leading-none min-w-0">
+              <div className="font-display text-base sm:text-xl font-extrabold tracking-tight uppercase truncate">
                 Predictions
               </div>
-              <div className="label-micro mt-1.5 group-hover:text-foreground transition-colors">
+              <div className="label-micro mt-1.5 hidden sm:block group-hover:text-foreground transition-colors">
                 ← Back to schedule
               </div>
             </div>
           </Link>
-          <nav className="flex items-center gap-4">
-            <Link to="/results" className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
+          <nav className="flex items-center gap-4 shrink-0">
+            <Link to="/results" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
               Results
             </Link>
           </nav>

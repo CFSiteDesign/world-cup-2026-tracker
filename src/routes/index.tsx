@@ -96,30 +96,30 @@ function Tracker() {
     <div className="relative min-h-screen bg-broadcast bg-grain">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl hairline-b">
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-card grid place-items-center ring-hairline">
+        <div className="max-w-6xl mx-auto px-3 sm:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="size-8 sm:size-9 rounded-lg bg-card grid place-items-center ring-hairline shrink-0">
               <span className="size-2 rounded-full bg-pitch animate-live" />
             </div>
-            <div className="leading-none">
-              <div className="font-display text-xl font-extrabold tracking-tight uppercase">
-                World Cup 26
+            <div className="leading-none min-w-0">
+              <div className="font-display text-base sm:text-xl font-extrabold tracking-tight uppercase truncate">
+                WC 26
               </div>
-              <div className="label-micro mt-1.5">
+              <div className="label-micro mt-1 sm:mt-1.5 truncate hidden sm:block">
                 {isLive ? "Live · Football-Data" : "USA · Canada · Mexico"}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             <Link
               to="/predict"
-              className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200"
+              className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
               Predict
             </Link>
             <Link
               to="/results"
-              className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200"
+              className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
               Results
             </Link>
@@ -127,6 +127,7 @@ function Tracker() {
           </div>
         </div>
       </header>
+
 
       <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-12">
         {/* Hero / Next match */}
@@ -235,7 +236,7 @@ function RegionToggle({ region, setRegion }: { region: Region; setRegion: (r: Re
         <button
           key={r}
           onClick={() => setRegion(r)}
-          className={`relative z-10 px-4 py-1.5 font-display text-xs font-extrabold uppercase tracking-wider rounded-full transition-colors duration-200 ${
+          className={`relative z-10 px-3 sm:px-4 py-1 sm:py-1.5 font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider rounded-full transition-colors duration-200 ${
             region === r ? "text-background" : "text-muted-foreground hover:text-foreground"
           }`}
         >
@@ -545,7 +546,8 @@ function AddToCalendarButton({ match, teamView }: { match: Match; teamView: Team
         <rect x="3" y="5" width="18" height="16" rx="1" />
         <path d="M3 9h18M8 3v4M16 3v4M12 13v4M10 15h4" />
       </svg>
-      Add to calendar
+      <span className="sm:hidden">Calendar</span>
+      <span className="hidden sm:inline">Add to calendar</span>
     </button>
   );
 }
