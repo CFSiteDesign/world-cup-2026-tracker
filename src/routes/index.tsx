@@ -313,19 +313,21 @@ function NextMatchCard({ match, region, now, broadcaster, teamView }: { match: M
 
 function TeamBadge({ team, size = "md" }: { team: ReturnType<TeamView>; size?: "sm" | "md" | "lg" }) {
   const dim = size === "lg" ? "size-14 sm:size-16 text-3xl sm:text-4xl" : size === "sm" ? "size-5 text-base" : "size-8 text-xl";
+  const radius = size === "sm" ? "rounded-md" : "rounded-xl";
   if (team.crest) {
     return (
-      <div className={`${dim} rounded-${size === "sm" ? "md" : "xl"} bg-surface-2 ring-hairline grid place-items-center overflow-hidden shrink-0`}>
+      <div className={`${dim} ${radius} bg-surface-2 ring-hairline grid place-items-center overflow-hidden shrink-0`}>
         <img src={team.crest} alt="" className="w-[70%] h-[70%] object-contain" loading="lazy" />
       </div>
     );
   }
   return (
-    <div className={`${dim} rounded-${size === "sm" ? "md" : "xl"} bg-surface-2 ring-hairline grid place-items-center shrink-0`}>
+    <div className={`${dim} ${radius} bg-surface-2 ring-hairline grid place-items-center shrink-0`}>
       <span>{team.flag}</span>
     </div>
   );
 }
+
 
 function TeamBlock({ team, align }: { team: ReturnType<TeamView>; align: "left" | "right" }) {
   return (
