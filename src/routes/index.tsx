@@ -808,17 +808,6 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
         </div>
       </div>
 
-      {/* Calendar export */}
-      <div className="hairline-t pt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="label-micro">Take it with you</div>
-        <button
-          onClick={downloadCalendar}
-          className="font-display text-xs font-extrabold uppercase tracking-wider px-3 py-2 rounded-lg bg-pitch text-background hover:opacity-90 transition-opacity"
-        >
-          Add England calendar
-        </button>
-      </div>
-    </section>
   );
 }
 
