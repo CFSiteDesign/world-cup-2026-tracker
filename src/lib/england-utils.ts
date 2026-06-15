@@ -238,24 +238,26 @@ function isIOS() {
 }
 
 export function downloadIcs(filename: string, content: string) {
-  // iOS Safari ignores the download attribute on blob URLs and fails to hand
-  // .ics off to Calendar. A data: URL with the calendar MIME triggers the
-  // native "Add to Calendar" sheet on iPhone and downloads cleanly on Android.
-  if (isIOS()) {
-    const dataUrl = "data:text/calendar;charset=utf-8," + encodeURIComponent(content);
-    window.location.href = dataUrl;
-    return;
-  }
+  // Use a Blob URL + anchor click triggered inside the same user gesture.
+  // iOS Safari now blocks top-frame navigation to data: URLs, so we open the
+  // blob in a new tab there (Safari shows the native "Add to Calendar" sheet).
+  // Desktop/Android keep the download attribute so the .ics saves directly.
   const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = filename;
+  if (isIOS()) {
+    a.target = "_blank";
+    a.rel = "noopener";
+  } else {
+    a.download = filename;
+  }
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
+
 
 export function addMatchToCalendar(m: Match, names: Record<string, string> = {}) {
   const ics = buildMatchIcs(m, names);
