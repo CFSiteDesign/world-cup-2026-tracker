@@ -552,7 +552,12 @@ function AddToCalendarButton({ match, teamView }: { match: Match; teamView: Team
       [match.homeCode]: teamView(match.homeCode).name,
       [match.awayCode]: teamView(match.awayCode).name,
     };
-    addMatchToCalendar(match, names);
+    try {
+      addMatchToCalendar(match, names);
+      toast.success("Added to calendar", { description: `${names[match.homeCode]} vs ${names[match.awayCode]}` });
+    } catch (err) {
+      toast.error("Couldn't open calendar", { description: err instanceof Error ? err.message : "Try again" });
+    }
   };
   return (
     <button
