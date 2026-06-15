@@ -113,13 +113,13 @@ function Tracker() {
           <div className="flex items-center gap-4">
             <Link
               to="/predict"
-              className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200 hidden sm:inline"
+              className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
               Predict
             </Link>
             <Link
               to="/results"
-              className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200 hidden sm:inline"
+              className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
               Results
             </Link>
@@ -684,7 +684,8 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
           </div>
         </div>
         {next && nextTime && nextDual && (
-          <div className="text-right">
+          <div className="text-right ml-auto">
+
             <div className="label-micro">Next match</div>
             <div className="font-display text-lg font-extrabold uppercase tracking-tight mt-1">
               vs {teamView(next.homeCode === ENG ? next.awayCode : next.homeCode).name}
