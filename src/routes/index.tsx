@@ -8,7 +8,7 @@ import {
 import { getWorldCup, type GroupTable } from "@/lib/worldcup.functions";
 import {
   ENG, isGroupEMatch, dualKickoff, englandScenarios,
-  buildEnglandIcs, downloadIcs,
+  buildEnglandIcs, downloadIcs, addMatchToCalendar,
 } from "@/lib/england-utils";
 
 export const Route = createFileRoute("/")({
