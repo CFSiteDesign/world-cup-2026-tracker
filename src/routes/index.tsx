@@ -236,7 +236,7 @@ function RegionToggle({ region, setRegion }: { region: Region; setRegion: (r: Re
         <button
           key={r}
           onClick={() => setRegion(r)}
-          className={`relative z-10 px-4 py-1.5 font-display text-xs font-extrabold uppercase tracking-wider rounded-full transition-colors duration-200 ${
+          className={`relative z-10 px-3 sm:px-4 py-1 sm:py-1.5 font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider rounded-full transition-colors duration-200 ${
             region === r ? "text-background" : "text-muted-foreground hover:text-foreground"
           }`}
         >
