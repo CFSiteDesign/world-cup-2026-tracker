@@ -68,6 +68,7 @@ function PredictPage() {
     code,
     name: liveNames[code] ?? getTeam(code).name,
     crest: crests[code],
+    flag: getTeam(code).flag,
   });
 
   const setName = (name: string) => {
@@ -254,7 +255,7 @@ function SectionHeader({ label }: { label: string }) {
 function PredictionRow({ match, now, mounted, player, preds, teamName, teamView, onChange }: {
   match: Match; now: Date; mounted: boolean; player: string;
   preds: Prediction[]; teamName: (c: string) => string;
-  teamView: (c: string) => { code: string; name: string; crest?: string };
+  teamView: (c: string) => { code: string; name: string; crest?: string; flag?: string };
   onChange: () => void;
 }) {
   const status = matchStatus(match, now);
@@ -367,11 +368,14 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
   );
 }
 
-function PredictCrest({ team }: { team: { code: string; name: string; crest?: string } }) {
-  if (team.crest) {
+function PredictCrest({ team }: { team: { code: string; name: string; crest?: string; flag?: string } }) {
+  const flag = team.code === "ENG" ? "🏴" : team.flag;
+  if (flag && flag !== "⚽" && team.code !== "TBD") {
     return (
-      <div className="size-7 rounded-md bg-surface grid place-items-center overflow-hidden shrink-0 ring-hairline">
-        <img src={team.crest} alt="" className="w-[72%] h-[72%] object-contain" loading="lazy" />
+      <div className="size-7 rounded-md bg-surface grid place-items-center shrink-0 ring-hairline">
+        <span role="img" aria-label={`${team.name} flag`} className="text-lg leading-none">
+          {flag}
+        </span>
       </div>
     );
   }
