@@ -7,6 +7,7 @@ import {
 } from "@/lib/worldcup-data";
 import { getWorldCup } from "@/lib/worldcup.functions";
 import { ENG, dualKickoff } from "@/lib/england-utils";
+import { MobileTabBar } from "@/components/MobileTabBar";
 
 export const Route = createFileRoute("/bracket")({
   head: () => ({

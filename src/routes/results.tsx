@@ -6,6 +6,7 @@ import {
   getTeam, formatKickoff, matchStatus, type Region, type Match,
 } from "@/lib/worldcup-data";
 import { getWorldCup } from "@/lib/worldcup.functions";
+import { MobileTabBar } from "@/components/MobileTabBar";
 
 export const Route = createFileRoute("/results")({
   head: () => ({

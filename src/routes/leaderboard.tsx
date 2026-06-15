@@ -7,6 +7,8 @@ import {
 } from "@/lib/worldcup-data";
 import { getWorldCup } from "@/lib/worldcup.functions";
 import { isEnglandMatch, scorePrediction, type Prediction } from "@/lib/england-utils";
+import { MobileTabBar } from "@/components/MobileTabBar";
+import { EnglandCountdown } from "@/components/EnglandCountdown";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({
