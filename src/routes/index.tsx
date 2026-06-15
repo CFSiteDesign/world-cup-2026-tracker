@@ -79,7 +79,7 @@ function Tracker() {
   );
 
   const filtered = useMemo(() => {
-    if (filter === "ENGLAND") return upcoming.filter(m => m.homeCode === "ENG" || m.awayCode === "ENG");
+    if (filter === "ENGLAND") return upcoming.filter(isGroupEMatch);
     if (filter === "ALL") return upcoming;
     return upcoming.filter(m => m.stage === filter);
   }, [filter, upcoming]);
