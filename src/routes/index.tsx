@@ -546,7 +546,8 @@ function AddToCalendarButton({ match, teamView }: { match: Match; teamView: Team
         <rect x="3" y="5" width="18" height="16" rx="1" />
         <path d="M3 9h18M8 3v4M16 3v4M12 13v4M10 15h4" />
       </svg>
-      Add to calendar
+      <span className="sm:hidden">Calendar</span>
+      <span className="hidden sm:inline">Add to calendar</span>
     </button>
   );
 }
