@@ -189,7 +189,7 @@ function Column({ stage, ties, now, teamView, isEnglandTie, feederIds }: {
   feederIds: Set<string>;
 }) {
   return (
-    <section className="shrink-0 snap-start w-[78vw] sm:w-auto">
+    <section className="w-full">
       <div className="label-micro mb-3 flex items-center gap-2">
         <span>{SHORT[stage]}</span>
         <span className="text-muted-foreground/60">·</span>
