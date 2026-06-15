@@ -7,6 +7,8 @@ import {
 } from "@/lib/worldcup-data";
 import { getWorldCup } from "@/lib/worldcup.functions";
 import { isEnglandMatch, scorePrediction, type Prediction } from "@/lib/england-utils";
+import { MobileTabBar } from "@/components/MobileTabBar";
+import { EnglandCountdown } from "@/components/EnglandCountdown";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({
@@ -138,7 +140,7 @@ function LeaderboardPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-8 pb-28 sm:pb-12">
         <div>
           <div className="font-display text-xs font-extrabold uppercase tracking-[0.14em] text-pitch mb-2">
             Shared board
@@ -150,6 +152,10 @@ function LeaderboardPage() {
             3 pts exact scoreline · 1 pt correct result · only finished matches count
           </div>
         </div>
+
+        <EnglandCountdown matches={matches} names={wc?.names ?? {}} variant="banner" />
+
+
 
         {/* Stage filter — horizontal scroll on mobile */}
         <div className="-mx-4 sm:mx-0 overflow-x-auto no-scrollbar">
@@ -198,10 +204,28 @@ function LeaderboardPage() {
               <tbody>
                 {board.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 label-micro">
-                      {scoredFixtures.length === 0
-                        ? "No finished fixtures in this filter yet."
-                        : "No predictions scored here yet."}
+                    <td colSpan={5} className="px-4 py-10">
+                      <div className="flex flex-col items-center text-center gap-3">
+                        <div className="size-10 rounded-full bg-surface ring-hairline grid place-items-center">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-pitch" aria-hidden="true">
+                            <path d="M5 4h14v6a7 7 0 0 1-14 0V4zM9 21h6M12 17v4" />
+                          </svg>
+                        </div>
+                        <div className="font-display text-sm font-extrabold uppercase tracking-tight">
+                          {scoredFixtures.length === 0 ? "Nothing to score yet" : "No predictions land here"}
+                        </div>
+                        <div className="label-micro max-w-xs">
+                          {scoredFixtures.length === 0
+                            ? "Once a match wraps up, points appear here automatically."
+                            : "Be the first to put a tip on these fixtures."}
+                        </div>
+                        <Link
+                          to="/predict"
+                          className="mt-1 font-display text-[11px] font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-pitch text-background hover:opacity-90 transition-opacity"
+                        >
+                          Make a prediction
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -259,6 +283,7 @@ function LeaderboardPage() {
           <div className="label-micro">Shared board</div>
         </footer>
       </main>
+      <MobileTabBar />
     </div>
   );
 }

@@ -10,6 +10,9 @@ import {
   ENG, isGroupEMatch, dualKickoff, englandScenarios,
   buildEnglandIcs, downloadIcs, addMatchToCalendar,
 } from "@/lib/england-utils";
+import { MobileTabBar } from "@/components/MobileTabBar";
+import { EnglandCountdown } from "@/components/EnglandCountdown";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -141,9 +144,12 @@ function Tracker() {
       </header>
 
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-12">
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-12 pb-28 sm:pb-12">
         {/* Hero / Next match */}
         {nextMatch && <HeroMatch match={nextMatch} region={region} now={now} broadcaster={bc.channel} teamView={teamView} />}
+
+        {/* England countdown */}
+        <EnglandCountdown matches={matches} names={data?.names ?? {}} variant="hero" />
 
         {/* Live strip */}
         {live.length > 0 && (
@@ -217,6 +223,7 @@ function Tracker() {
           <div className="label-micro">Data · football-data.org</div>
         </footer>
       </main>
+      <MobileTabBar />
     </div>
   );
 }
@@ -545,7 +552,12 @@ function AddToCalendarButton({ match, teamView }: { match: Match; teamView: Team
       [match.homeCode]: teamView(match.homeCode).name,
       [match.awayCode]: teamView(match.awayCode).name,
     };
-    addMatchToCalendar(match, names);
+    try {
+      addMatchToCalendar(match, names);
+      toast.success("Added to calendar", { description: `${names[match.homeCode]} vs ${names[match.awayCode]}` });
+    } catch (err) {
+      toast.error("Couldn't open calendar", { description: err instanceof Error ? err.message : "Try again" });
+    }
   };
   return (
     <button
@@ -707,8 +719,13 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
   };
 
   const downloadCalendar = () => {
-    const ics = buildEnglandIcs(englandMatches);
-    downloadIcs("england-world-cup-2026.ics", ics);
+    try {
+      const ics = buildEnglandIcs(englandMatches);
+      downloadIcs("england-world-cup-2026.ics", ics);
+      toast.success("England calendar opened", { description: `${englandMatches.length} fixtures` });
+    } catch (err) {
+      toast.error("Couldn't open calendar", { description: err instanceof Error ? err.message : "Try again" });
+    }
   };
 
   return (

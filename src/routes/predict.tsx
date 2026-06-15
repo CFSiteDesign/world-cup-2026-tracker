@@ -9,6 +9,9 @@ import { getWorldCup } from "@/lib/worldcup.functions";
 import {
   ENG, isEnglandMatch, dualKickoff, scorePrediction, type Prediction,
 } from "@/lib/england-utils";
+import { MobileTabBar } from "@/components/MobileTabBar";
+import { EnglandCountdown } from "@/components/EnglandCountdown";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/predict")({
   head: () => ({
@@ -131,7 +134,7 @@ function PredictPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-10 pb-28 sm:pb-12">
         <div>
           <div className="font-display text-xs font-extrabold uppercase tracking-[0.14em] text-pitch mb-2">
             Group board
@@ -143,6 +146,10 @@ function PredictPage() {
             3 pts exact scoreline · 1 pt correct result · locks at kickoff
           </div>
         </div>
+
+        <EnglandCountdown matches={matches} names={liveNames} variant="banner" />
+
+
 
         {/* Player picker */}
         <section className="rounded-xl bg-card shadow-card p-5 sm:p-6 animate-fade-up">
@@ -245,6 +252,7 @@ function PredictPage() {
           <div className="label-micro">Shared board</div>
         </footer>
       </main>
+      <MobileTabBar />
     </div>
   );
 }
@@ -272,7 +280,6 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
   const [home, setHome] = useState<string>("");
   const [away, setAway] = useState<string>("");
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
     setHome(mine ? String(mine.home_pred) : "");
@@ -284,18 +291,26 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
   const submit = async () => {
     if (!player || locked) return;
     const h = parseInt(home, 10), a = parseInt(away, 10);
-    if (isNaN(h) || isNaN(a) || h < 0 || a < 0) { setMsg("Enter valid numbers"); return; }
-    setSaving(true); setMsg(null);
+    if (isNaN(h) || isNaN(a) || h < 0 || a < 0) {
+      toast.error("Enter valid scores");
+      return;
+    }
+    setSaving(true);
     const { error } = await supabase.from("predictions").upsert(
       { player_name: player, match_id: match.id, home_pred: h, away_pred: a, updated_at: new Date().toISOString() },
       { onConflict: "player_name,match_id" }
     );
     setSaving(false);
-    if (error) { setMsg(error.message); return; }
-    setMsg("Saved");
-    setTimeout(() => setMsg(null), 1500);
+    if (error) {
+      toast.error("Could not save", { description: error.message });
+      return;
+    }
+    toast.success(`${teamName(match.homeCode)} ${h}–${a} ${teamName(match.awayCode)}`, {
+      description: "Prediction saved",
+    });
     onChange();
   };
+
 
   const homeName = teamName(match.homeCode);
   const awayName = teamName(match.awayCode);
@@ -368,7 +383,7 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
             {saving ? "Saving…" : mine ? "Update" : "Submit"}
           </button>
         )}
-        {msg && <span className="label-micro text-pitch">{msg}</span>}
+        
       </div>
     </article>
   );
