@@ -112,6 +112,12 @@ function Tracker() {
           </div>
           <div className="flex items-center gap-4">
             <Link
+              to="/predict"
+              className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200 hidden sm:inline"
+            >
+              Predict
+            </Link>
+            <Link
               to="/results"
               className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200 hidden sm:inline"
             >
