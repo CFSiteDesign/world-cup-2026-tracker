@@ -661,7 +661,7 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
               vs {teamView(next.homeCode === ENG ? next.awayCode : next.homeCode).name}
             </div>
             <div suppressHydrationWarning className="font-display text-sm font-extrabold text-pitch tabular-nums mt-1">{nextCountdown}</div>
-            <div className="label-micro mt-1">{nextDual.uk.time} {nextDual.uk.tz}</div>
+            <div className="label-micro mt-1">{nextTime.time} {nextTime.tzLabel}</div>
           </div>
         )}
       </div>
@@ -735,20 +735,19 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
         <div className="space-y-2">
           {englandMatches.filter(m => matchStatus(m, now) !== "FT").map(m => (
             <FeedRow
-              key={m.id} match={m} now={now} teamView={teamView}
+              key={m.id} match={m} now={now} teamView={teamView} region={region}
               label="England play"
             />
-
           ))}
           {rivalMatches.filter(m => matchStatus(m, now) !== "FT").map(m => (
             <FeedRow
-              key={m.id} match={m} now={now} teamView={teamView}
+              key={m.id} match={m} now={now} teamView={teamView} region={region}
               label="Rival fixture"
             />
           ))}
           {feederMatches.map(m => (
             <FeedRow
-              key={m.id} match={m} now={now} teamView={teamView}
+              key={m.id} match={m} now={now} teamView={teamView} region={region}
               label={`Decides England's ${shortStage(m.stage)} opponent`}
             />
           ))}
@@ -763,12 +762,12 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
   );
 }
 
-function FeedRow({ match, teamView, label }: {
-  match: Match; now: Date; teamView: TeamView; label: string;
+function FeedRow({ match, teamView, label, region }: {
+  match: Match; now: Date; teamView: TeamView; label: string; region: Region;
 }) {
   const home = teamView(match.homeCode);
   const away = teamView(match.awayCode);
-  const dual = dualKickoff(match.kickoffUTC);
+  const { time, tzLabel } = formatKickoff(match.kickoffUTC, region);
   return (
     <div className="rounded-lg bg-surface ring-hairline p-3 sm:p-4">
       <div className="flex items-center justify-between gap-3 mb-1.5">
@@ -780,7 +779,7 @@ function FeedRow({ match, teamView, label }: {
           {home.name} <span className="text-muted-foreground mx-1">vs</span> {away.name}
         </div>
         <div className="label-micro tabular-nums">
-          {dual.uk.time} {dual.uk.tz}
+          {time} {tzLabel}
         </div>
       </div>
     </div>
