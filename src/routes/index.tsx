@@ -374,13 +374,6 @@ function HeroMatch({ match, region, now, broadcaster, teamView }: {
                 {match.venue}
               </span>
             </div>
-          {match.venue && (
-            <div className="flex items-center gap-2">
-              <span className="label-micro">Venue</span>
-              <span className="font-display text-sm font-extrabold uppercase tracking-wider truncate max-w-[200px]">
-                {match.venue}
-              </span>
-            </div>
           )}
           {status !== "FT" && (
             <AddToCalendarButton match={match} teamView={teamView} />
