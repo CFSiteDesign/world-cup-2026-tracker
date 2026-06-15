@@ -609,12 +609,19 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
   now: Date; matches: Match[]; groups: GroupTable[]; teamView: TeamView; region: Region;
 }) {
   const englandMatches = matches.filter(m => m.homeCode === ENG || m.awayCode === ENG);
-  const groupEMatches = matches.filter(isGroupEMatch);
+  const groupE = groups.find(g => g.rows.some(r => r.code === ENG)) ?? groups.find(g => g.group === "E");
+  const rows = groupE?.rows ?? [];
+  const groupCodes = useMemo(() => new Set(rows.map(r => r.code)), [rows]);
+  const groupEMatches = useMemo(
+    () => matches.filter(m =>
+      (groupE && m.group === groupE.group) ||
+      (groupCodes.has(m.homeCode) && groupCodes.has(m.awayCode))
+    ),
+    [matches, groupE, groupCodes],
+  );
   const rivalMatches = groupEMatches.filter(m => m.homeCode !== ENG && m.awayCode !== ENG);
   const next = englandMatches.find(m => matchStatus(m, now) !== "FT");
   const nextCountdown = useCountdown(next?.kickoffUTC ?? new Date().toISOString(), now);
-  const groupE = groups.find(g => g.rows.some(r => r.code === ENG)) ?? groups.find(g => g.group === "E");
-  const rows = groupE?.rows ?? [];
   const nextTime = next ? formatKickoff(next.kickoffUTC, region) : null;
   const nextDual = next ? dualKickoff(next.kickoffUTC) : null;
 
