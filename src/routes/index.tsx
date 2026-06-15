@@ -735,7 +735,7 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
       <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
         <div className="flex items-center gap-4">
           <div className="size-12 rounded-lg bg-surface ring-hairline grid place-items-center">
-            <span className="font-display text-base font-extrabold uppercase">ENG</span>
+            <span className="text-2xl leading-none">{getTeam(ENG).flag}</span>
           </div>
           <div>
             <div className="font-display text-2xl font-extrabold uppercase tracking-tight leading-none">
