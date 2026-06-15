@@ -147,6 +147,10 @@ function PredictPage() {
           </div>
         </div>
 
+        <EnglandCountdown matches={matches} names={liveNames} variant="banner" />
+
+
+
         {/* Player picker */}
         <section className="rounded-xl bg-card shadow-card p-5 sm:p-6 animate-fade-up">
           {!mounted ? (
