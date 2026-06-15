@@ -86,6 +86,9 @@ function ResultsPage() {
             </div>
           </Link>
           <div className="flex items-center gap-4">
+            <Link to="/predict" className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200 hidden sm:inline">
+              Predict
+            </Link>
             <div className="label-micro hidden sm:block">{TIMEZONES[region].label}</div>
             <div className="relative inline-flex p-1 rounded-full bg-card ring-hairline">
               <div

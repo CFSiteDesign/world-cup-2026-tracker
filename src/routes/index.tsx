@@ -6,6 +6,10 @@ import {
   getTeam, formatKickoff, matchStatus, type Region, type Match, type Stage,
 } from "@/lib/worldcup-data";
 import { getWorldCup, type GroupTable } from "@/lib/worldcup.functions";
+import {
+  ENG, isGroupEMatch, dualKickoff, englandScenarios,
+  buildEnglandIcs, downloadIcs,
+} from "@/lib/england-utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -75,7 +79,7 @@ function Tracker() {
   );
 
   const filtered = useMemo(() => {
-    if (filter === "ENGLAND") return upcoming.filter(m => m.homeCode === "ENG" || m.awayCode === "ENG");
+    if (filter === "ENGLAND") return upcoming.filter(isGroupEMatch);
     if (filter === "ALL") return upcoming;
     return upcoming.filter(m => m.stage === filter);
   }, [filter, upcoming]);
@@ -107,6 +111,12 @@ function Tracker() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <Link
+              to="/predict"
+              className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200 hidden sm:inline"
+            >
+              Predict
+            </Link>
             <Link
               to="/results"
               className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200 hidden sm:inline"
@@ -329,6 +339,14 @@ function HeroMatch({ match, region, now, broadcaster, teamView }: {
                 <div className="label-micro mb-1">{day}</div>
                 <div className="scoreline text-5xl sm:text-7xl">{time}</div>
                 <div className="label-micro mt-2">{tzLabel}</div>
+                {(match.homeCode === ENG || match.awayCode === ENG) && (() => {
+                  const dual = dualKickoff(match.kickoffUTC);
+                  return (
+                    <div className="label-micro mt-3 leading-relaxed">
+                      {dual.uk.time} {dual.uk.tz} · {dual.au.time} {dual.au.tz} ({dual.au.day})
+                    </div>
+                  );
+                })()}
               </>
             )}
           </div>
@@ -344,7 +362,7 @@ function HeroMatch({ match, region, now, broadcaster, teamView }: {
           {!live && (
             <div className="flex items-center gap-2">
               <span className="label-micro">Kickoff</span>
-              <span className="font-display text-sm font-extrabold uppercase tracking-wider text-pitch tabular-nums">
+              <span suppressHydrationWarning className="font-display text-sm font-extrabold uppercase tracking-wider text-pitch tabular-nums">
                 {countdown}
               </span>
             </div>
@@ -570,12 +588,84 @@ function DayGroupedList({ matches, region, now, teamView }: { matches: Match[]; 
 function EnglandPanel({ now, matches, groups, teamView, region }: {
   now: Date; matches: Match[]; groups: GroupTable[]; teamView: TeamView; region: Region;
 }) {
-  const englandMatches = matches.filter(m => m.homeCode === "ENG" || m.awayCode === "ENG");
+  const englandMatches = matches.filter(m => m.homeCode === ENG || m.awayCode === ENG);
+  const groupEMatches = matches.filter(isGroupEMatch);
+  const rivalMatches = groupEMatches.filter(m => m.homeCode !== ENG && m.awayCode !== ENG);
   const next = englandMatches.find(m => matchStatus(m, now) !== "FT");
   const nextCountdown = useCountdown(next?.kickoffUTC ?? new Date().toISOString(), now);
-  const groupE = groups.find(g => g.rows.some(r => r.code === "ENG")) ?? groups.find(g => g.group === "E");
+  const groupE = groups.find(g => g.rows.some(r => r.code === ENG)) ?? groups.find(g => g.group === "E");
   const rows = groupE?.rows ?? [];
   const nextTime = next ? formatKickoff(next.kickoffUTC, region) : null;
+  const nextDual = next ? dualKickoff(next.kickoffUTC) : null;
+
+  const scenario = useMemo(() => englandScenarios(rows, groupEMatches, now), [rows, groupEMatches, now]);
+
+  // Knockout feeders: matches that could decide England's next KO opponent.
+  // While England's own KO fixture isn't a real team yet (TBD), surface matches in the same stage.
+  const englandKO = englandMatches.find(m => m.stage !== "Group Stage" && matchStatus(m, now) !== "FT");
+  const feederMatches = useMemo(() => {
+    if (!englandKO) return [];
+    return matches.filter(m =>
+      m.stage === englandKO.stage &&
+      m.id !== englandKO.id &&
+      m.homeCode !== ENG && m.awayCode !== ENG &&
+      matchStatus(m, now) !== "FT"
+    ).slice(0, 4);
+  }, [matches, englandKO, now]);
+
+  // Reminders (client-only, in-tab)
+  const [reminders, setReminders] = useState<Record<string, boolean>>({});
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const saved = localStorage.getItem("wc-reminders");
+      if (saved) setReminders(JSON.parse(saved));
+    } catch { /* ignore */ }
+  }, []);
+  useEffect(() => {
+    if (mounted) localStorage.setItem("wc-reminders", JSON.stringify(reminders));
+  }, [reminders, mounted]);
+  // schedule notifications per render for matches with reminders enabled
+  const firedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!mounted) return;
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    const timers: number[] = [];
+    for (const m of englandMatches) {
+      if (!reminders[m.id]) continue;
+      const fireAt = new Date(m.kickoffUTC).getTime() - 15 * 60 * 1000;
+      const delay = fireAt - Date.now();
+      const key = `${m.id}:${fireAt}`;
+      if (firedRef.current.has(key)) continue;
+      if (delay <= 0 || delay > 24 * 3600 * 1000) continue;
+      const id = window.setTimeout(() => {
+        firedRef.current.add(key);
+        if (Notification.permission === "granted") {
+          const opp = m.homeCode === ENG ? m.awayCode : m.homeCode;
+          new Notification(`England kick off in 15 min vs ${teamView(opp).name}`, {
+            body: `${m.stage}${m.group ? ` · Group ${m.group}` : ""} · ${m.venue}`,
+          });
+        }
+      }, delay);
+      timers.push(id);
+    }
+    return () => { timers.forEach(t => window.clearTimeout(t)); };
+  }, [reminders, englandMatches, mounted, teamView]);
+
+  const toggleReminder = async (id: string) => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "default") {
+        try { await Notification.requestPermission(); } catch { /* ignore */ }
+      }
+    }
+    setReminders(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const downloadCalendar = () => {
+    const ics = buildEnglandIcs(englandMatches);
+    downloadIcs("england-world-cup-2026.ics", ics);
+  };
 
   return (
     <section className="rounded-xl bg-card shadow-elevated p-6 sm:p-8 animate-fade-up">
@@ -593,15 +683,28 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
             </div>
           </div>
         </div>
-        {next && nextTime && (
+        {next && nextTime && nextDual && (
           <div className="text-right">
             <div className="label-micro">Next match</div>
             <div className="font-display text-lg font-extrabold uppercase tracking-tight mt-1">
-              vs {teamView(next.homeCode === "ENG" ? next.awayCode : next.homeCode).name}
+              vs {teamView(next.homeCode === ENG ? next.awayCode : next.homeCode).name}
             </div>
-            <div className="font-display text-sm font-extrabold text-pitch tabular-nums mt-1">{nextCountdown}</div>
+            <div suppressHydrationWarning className="font-display text-sm font-extrabold text-pitch tabular-nums mt-1">{nextCountdown}</div>
+            <div className="label-micro mt-1">{nextDual.uk.time} {nextDual.uk.tz} · {nextDual.au.time} {nextDual.au.tz} ({nextDual.au.day})</div>
           </div>
         )}
+      </div>
+
+      {/* Qualification scenarios */}
+      <div className="mb-6 rounded-lg bg-surface ring-hairline p-4">
+        <div className="label-micro mb-2" style={{ color: "var(--pitch)" }}>Scenarios</div>
+        <ul className="space-y-1.5">
+          {scenario.lines.map((l, i) => (
+            <li key={i} className="font-display text-sm font-extrabold uppercase tracking-tight leading-snug">
+              {l}
+            </li>
+          ))}
+        </ul>
       </div>
 
       {rows.length > 0 && (
@@ -624,32 +727,20 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
               <tbody>
                 {rows.map((row, i) => {
                   const t = teamView(row.code);
-                  const isEng = row.code === "ENG";
+                  const isEng = row.code === ENG;
                   const qualified = i < 2;
                   const gd = row.GF - row.GA;
                   return (
-                    <tr
-                      key={row.code}
-                      className="hairline-b last:border-0 transition-colors duration-200"
-                    >
+                    <tr key={row.code} className="hairline-b last:border-0 transition-colors duration-200">
                       <td className="relative px-3 py-3 font-display text-sm font-extrabold tabular-nums">
-                        {qualified && (
-                          <span
-                            className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm"
-                            style={{ background: "var(--gold)" }}
-                          />
-                        )}
+                        {qualified && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm" style={{ background: "var(--gold)" }} />}
                         <span className={qualified ? "text-gold" : "text-muted-foreground"}>{i + 1}</span>
                       </td>
                       <td className="px-2 py-3">
                         <div className="flex items-center gap-2.5">
                           <TeamCrest team={t} size="sm" />
-                          <span className={`font-display text-sm font-extrabold uppercase tracking-tight ${isEng ? "text-pitch" : ""}`}>
-                            {t.name}
-                          </span>
-                          {qualified && (
-                            <span className="label-micro" style={{ color: "var(--gold)", letterSpacing: "0.1em" }}>Q</span>
-                          )}
+                          <span className={`font-display text-sm font-extrabold uppercase tracking-tight ${isEng ? "text-pitch" : ""}`}>{t.name}</span>
+                          {qualified && <span className="label-micro" style={{ color: "var(--gold)", letterSpacing: "0.1em" }}>Q</span>}
                         </div>
                       </td>
                       <td className="text-center px-2 py-3 font-display text-sm font-extrabold tabular-nums text-muted-foreground">{row.P}</td>
@@ -667,19 +758,90 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
         </div>
       )}
 
-      <div className="hairline-t pt-4">
-        <div className="label-micro mb-2">Projected route</div>
-        <div className="font-display text-sm font-extrabold uppercase tracking-tight">
-          R32 <span className="text-muted-foreground mx-1">→</span>
-          R16 <span className="text-muted-foreground mx-1">→</span>
-          QF <span className="text-muted-foreground mx-1">→</span>
-          SF <span className="text-muted-foreground mx-1">→</span>
-          <span className="text-gold">Final · MetLife · 19 Jul</span>
+      {/* What affects England */}
+      <div className="mb-6">
+        <div className="label-micro mb-3">What affects England</div>
+        <div className="space-y-2">
+          {englandMatches.filter(m => matchStatus(m, now) !== "FT").map(m => (
+            <FeedRow
+              key={m.id} match={m} now={now} teamView={teamView}
+              label="England play"
+              reminderOn={!!reminders[m.id]}
+              mounted={mounted}
+              onToggleReminder={() => toggleReminder(m.id)}
+            />
+          ))}
+          {rivalMatches.filter(m => matchStatus(m, now) !== "FT").map(m => (
+            <FeedRow
+              key={m.id} match={m} now={now} teamView={teamView}
+              label="Rival fixture"
+            />
+          ))}
+          {feederMatches.map(m => (
+            <FeedRow
+              key={m.id} match={m} now={now} teamView={teamView}
+              label={`Decides England's ${shortStage(m.stage)} opponent`}
+            />
+          ))}
+          {englandMatches.filter(m => matchStatus(m, now) !== "FT").length === 0 &&
+           rivalMatches.filter(m => matchStatus(m, now) !== "FT").length === 0 &&
+           feederMatches.length === 0 && (
+            <div className="label-micro">Nothing on the radar right now.</div>
+          )}
         </div>
+      </div>
+
+      {/* Calendar export */}
+      <div className="hairline-t pt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="label-micro">Take it with you</div>
+        <button
+          onClick={downloadCalendar}
+          className="font-display text-xs font-extrabold uppercase tracking-wider px-3 py-2 rounded-lg bg-pitch text-background hover:opacity-90 transition-opacity"
+        >
+          Download England calendar (.ics)
+        </button>
       </div>
     </section>
   );
 }
+
+function FeedRow({ match, now, teamView, label, reminderOn, mounted, onToggleReminder }: {
+  match: Match; now: Date; teamView: TeamView; label: string;
+  reminderOn?: boolean; mounted?: boolean; onToggleReminder?: () => void;
+}) {
+  const home = teamView(match.homeCode);
+  const away = teamView(match.awayCode);
+  const dual = dualKickoff(match.kickoffUTC);
+  const canRemind = !!onToggleReminder;
+  return (
+    <div className="rounded-lg bg-surface ring-hairline p-3 sm:p-4">
+      <div className="flex items-center justify-between gap-3 mb-1.5">
+        <span className="label-micro" style={{ color: "var(--pitch)" }}>{label}</span>
+        <span className="label-micro">{match.stage.toUpperCase()}{match.group ? ` · GRP ${match.group}` : ""}</span>
+      </div>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="font-display text-sm font-extrabold uppercase tracking-tight">
+          {home.name} <span className="text-muted-foreground mx-1">vs</span> {away.name}
+        </div>
+        <div className="label-micro tabular-nums">
+          {dual.uk.time} {dual.uk.tz} · {dual.au.time} {dual.au.tz} ({dual.au.day})
+        </div>
+      </div>
+      {canRemind && mounted && (
+        <div className="mt-2 flex items-center justify-end">
+          <button
+            onClick={onToggleReminder}
+            className={`font-display text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full ring-hairline transition-colors duration-200 ${reminderOn ? "bg-pitch text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}
+          >
+            {reminderOn ? "Reminder on" : "Remind me"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 
 function useCountdown(targetUTC: string, now: Date) {
   const diff = new Date(targetUTC).getTime() - now.getTime();
