@@ -318,8 +318,11 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
       </div>
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
-        <div className="text-right font-display text-sm sm:text-base font-extrabold uppercase tracking-tight truncate">
-          {homeName}
+        <div className="flex items-center justify-end gap-2 min-w-0">
+          <span className="font-display text-sm sm:text-base font-extrabold uppercase tracking-tight truncate">
+            {homeName}
+          </span>
+          <PredictCrest team={teamView(match.homeCode)} />
         </div>
         <div className="flex items-center gap-2">
           <input
@@ -336,8 +339,13 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
             className="w-14 text-center bg-surface ring-hairline rounded-lg py-2 scoreline text-xl text-foreground disabled:opacity-50"
           />
         </div>
-        <div className="text-left font-display text-sm sm:text-base font-extrabold uppercase tracking-tight truncate">
-          {awayName}
+        <div className="flex items-center justify-start gap-2 min-w-0">
+          <PredictCrest team={teamView(match.awayCode)} />
+          <span className="font-display text-sm sm:text-base font-extrabold uppercase tracking-tight truncate">
+            {awayName}
+          </span>
+        </div>
+      </div>
         </div>
       </div>
 
