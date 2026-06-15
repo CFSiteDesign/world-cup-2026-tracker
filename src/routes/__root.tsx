@@ -9,10 +9,32 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+function isChunkLoadError(err: unknown): boolean {
+  if (!err) return false;
+  const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);
+  return /Importing a module script failed|Failed to fetch dynamically imported module|ChunkLoadError|Loading chunk \d+ failed|error loading dynamically imported module/i.test(msg);
+}
+
+function reloadOnce() {
+  if (typeof window === "undefined") return;
+  const key = "wc-chunk-reload";
+  try {
+    const last = Number(sessionStorage.getItem(key) ?? "0");
+    if (Date.now() - last < 10_000) return; // avoid reload loops
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch { /* ignore */ }
+  window.location.reload();
+}
+
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
+  useEffect(() => {
+    // Stale lazy chunk after a redeploy can cause an "Importing a module script failed"
+    // mid-navigation; TanStack treats it as a not-found. Refresh once to fetch the new chunk.
+    reloadOnce();
+  }, []);
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -119,6 +141,21 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    const onError = (e: ErrorEvent) => {
+      if (isChunkLoadError(e.error ?? e.message)) reloadOnce();
+    };
+    const onRejection = (e: PromiseRejectionEvent) => {
+      if (isChunkLoadError(e.reason)) reloadOnce();
+    };
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
