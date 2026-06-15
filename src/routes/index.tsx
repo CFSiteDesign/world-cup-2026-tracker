@@ -533,9 +533,6 @@ function MatchCard({ match, region, now, teamView }: { match: Match; region: Reg
             {match.venue || ""}{match.venue && match.city ? " · " : ""}{match.city || ""}
             {match.bracketNote ? (match.venue || match.city ? " · " : "") + match.bracketNote : ""}
           </div>
-          {status !== "FT" && (
-            <AddToCalendarButton match={match} teamView={teamView} />
-          )}
         </div>
       </div>
     </article>
