@@ -682,15 +682,6 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
     setReminders(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const downloadCalendar = async () => {
-    try {
-      const ics = buildEnglandIcs(englandMatches);
-      await downloadIcs("england-world-cup-2026.ics", ics, "England World Cup 26 fixtures");
-      toast.success("England calendar opened", { description: `${englandMatches.length} fixtures` });
-    } catch (err) {
-      toast.error("Couldn't open calendar", { description: err instanceof Error ? err.message : "Try again" });
-    }
-  };
 
   return (
     <section className="rounded-xl bg-card shadow-elevated p-6 sm:p-8 animate-fade-up">
