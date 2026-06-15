@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -69,11 +69,16 @@ function Tracker() {
     [matches]
   );
 
+  const upcoming = useMemo(
+    () => sorted.filter(m => matchStatus(m, now) !== "FT"),
+    [sorted, now]
+  );
+
   const filtered = useMemo(() => {
-    if (filter === "ENGLAND") return sorted.filter(m => m.homeCode === "ENG" || m.awayCode === "ENG");
-    if (filter === "ALL") return sorted;
-    return sorted.filter(m => m.stage === filter);
-  }, [filter, sorted]);
+    if (filter === "ENGLAND") return upcoming.filter(m => m.homeCode === "ENG" || m.awayCode === "ENG");
+    if (filter === "ALL") return upcoming;
+    return upcoming.filter(m => m.stage === filter);
+  }, [filter, upcoming]);
 
   const nextMatch = useMemo(
     () => sorted.find(m => matchStatus(m, now) !== "FT"),
@@ -101,7 +106,15 @@ function Tracker() {
               </div>
             </div>
           </div>
-          <RegionToggle region={region} setRegion={setRegion} />
+          <div className="flex items-center gap-4">
+            <Link
+              to="/results"
+              className="font-display text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200 hidden sm:inline"
+            >
+              Results
+            </Link>
+            <RegionToggle region={region} setRegion={setRegion} />
+          </div>
         </div>
       </header>
 
