@@ -251,9 +251,11 @@ function SectionHeader({ label }: { label: string }) {
   );
 }
 
-function PredictionRow({ match, now, mounted, player, preds, teamName, onChange }: {
+function PredictionRow({ match, now, mounted, player, preds, teamName, teamView, onChange }: {
   match: Match; now: Date; mounted: boolean; player: string;
-  preds: Prediction[]; teamName: (c: string) => string; onChange: () => void;
+  preds: Prediction[]; teamName: (c: string) => string;
+  teamView: (c: string) => { code: string; name: string; crest?: string };
+  onChange: () => void;
 }) {
   const status = matchStatus(match, now);
   const locked = status !== "UPCOMING";
