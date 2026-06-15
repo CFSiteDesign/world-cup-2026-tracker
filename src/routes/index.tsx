@@ -302,6 +302,7 @@ function MatchCard({ match, region, now }: { match: Match; region: Region; now: 
 function EnglandPanel({ region, now }: { region: Region; now: Date }) {
   const englandMatches = MATCHES.filter(m => m.homeCode === "ENG" || m.awayCode === "ENG");
   const next = englandMatches.find(m => matchStatus(m, now) !== "FT");
+  const nextCountdown = useCountdown(next?.kickoffUTC ?? new Date().toISOString(), now);
 
   return (
     <section className="rounded-2xl border border-gold/40 bg-gradient-to-br from-secondary to-card p-5 sm:p-6 shadow-glow animate-fade-up">
@@ -318,7 +319,7 @@ function EnglandPanel({ region, now }: { region: Region; now: Date }) {
             <div className="font-bold">
               vs {getTeam(next.homeCode === "ENG" ? next.awayCode : next.homeCode).name}
             </div>
-            <div className="text-xs text-gold">{useCountdown(next.kickoffUTC, now)}</div>
+            <div className="text-xs text-gold">{nextCountdown}</div>
           </div>
         )}
       </div>
