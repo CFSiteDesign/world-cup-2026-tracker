@@ -139,21 +139,37 @@ function BracketPage() {
           </div>
         </div>
 
-        {/* Desktop: column grid · Mobile: horizontal snap scroll */}
-        <div className="-mx-4 sm:mx-0 overflow-x-auto sm:overflow-visible snap-x snap-mandatory">
-          <div className="flex sm:grid sm:grid-cols-6 gap-3 sm:gap-4 px-4 sm:px-0 min-w-min">
-            {KO_STAGES.map(stage => (
-              <Column
-                key={stage}
-                stage={stage}
-                ties={byStage.get(stage) ?? []}
-                now={now}
-                teamView={teamView}
-                isEnglandTie={isEnglandTie}
-                feederIds={feederIds}
-              />
-            ))}
-          </div>
+        {/* Mobile: vertical accordion by round · Desktop: 6-column grid */}
+        <div className="sm:hidden space-y-3">
+          {KO_STAGES.map(stage => (
+            <RoundAccordion
+              key={stage}
+              stage={stage}
+              ties={byStage.get(stage) ?? []}
+              now={now}
+              teamView={teamView}
+              isEnglandTie={isEnglandTie}
+              feederIds={feederIds}
+              defaultOpen={
+                // open the round England are next in, else R32
+                stage === (englandNextKO?.stage ?? "Round of 32")
+              }
+            />
+          ))}
+        </div>
+
+        <div className="hidden sm:grid sm:grid-cols-6 gap-4">
+          {KO_STAGES.map(stage => (
+            <Column
+              key={stage}
+              stage={stage}
+              ties={byStage.get(stage) ?? []}
+              now={now}
+              teamView={teamView}
+              isEnglandTie={isEnglandTie}
+              feederIds={feederIds}
+            />
+          ))}
         </div>
 
         <div className="hairline-t pt-4 label-micro">
