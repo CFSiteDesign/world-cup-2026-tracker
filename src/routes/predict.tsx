@@ -372,7 +372,18 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
 }
 
 function PredictCrest({ team }: { team: { code: string; name: string; crest?: string; flag?: string } }) {
-  const flag = team.code === "ENG" ? "🏴" : team.flag;
+  if (team.code === "ENG") {
+    return (
+      <div className="size-7 rounded-md bg-surface grid place-items-center shrink-0 ring-hairline overflow-hidden" aria-label="England flag">
+        <svg viewBox="0 0 5 3" className="size-full" xmlns="http://www.w3.org/2000/svg">
+          <rect width="5" height="3" fill="#ffffff" />
+          <rect x="2" width="1" height="3" fill="#CE1124" />
+          <rect y="1" width="5" height="1" fill="#CE1124" />
+        </svg>
+      </div>
+    );
+  }
+  const flag = team.flag;
   if (flag && flag !== "⚽" && team.code !== "TBD") {
     return (
       <div className="size-7 rounded-md bg-surface grid place-items-center shrink-0 ring-hairline">
@@ -388,3 +399,4 @@ function PredictCrest({ team }: { team: { code: string; name: string; crest?: st
     </div>
   );
 }
+
