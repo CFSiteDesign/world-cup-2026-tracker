@@ -140,7 +140,7 @@ function LeaderboardPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-8 pb-28 sm:pb-12">
         <div>
           <div className="font-display text-xs font-extrabold uppercase tracking-[0.14em] text-pitch mb-2">
             Shared board
