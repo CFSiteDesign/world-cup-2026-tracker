@@ -115,6 +115,9 @@ function PredictPage() {
             </div>
           </Link>
           <nav className="flex items-center gap-3 sm:gap-4 shrink-0">
+            <Link to="/" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
+              Home
+            </Link>
             <Link to="/bracket" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
               Bracket
             </Link>
