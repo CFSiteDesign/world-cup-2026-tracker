@@ -105,8 +105,8 @@ function PredictPage() {
       <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl hairline-b">
         <div className="max-w-6xl mx-auto px-3 sm:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0">
-            <div className="size-8 sm:size-9 rounded-lg bg-card grid place-items-center ring-hairline shrink-0">
-              <span className="font-display text-[10px] font-extrabold text-pitch">PRD</span>
+            <div className="size-8 sm:size-9 rounded-lg overflow-hidden bg-card grid place-items-center ring-hairline shrink-0">
+              <img src="/__l5e/assets-v1/2fd63e31-5ec5-43e8-99cb-7ff96b8c50d3/wc26-logo.png" alt="World Cup 26 Tracker logo" className="w-full h-full object-contain" />
             </div>
             <div className="leading-none min-w-0">
               <div className="font-display text-base sm:text-xl font-extrabold tracking-tight uppercase truncate">
