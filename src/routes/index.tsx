@@ -89,8 +89,17 @@ function Tracker() {
           <div className="flex items-center gap-2.5">
             <div className="size-8 rounded-lg bg-brand-gradient grid place-items-center text-sm shadow-glow">⚽</div>
             <div className="leading-tight">
-              <div className="text-sm font-bold tracking-tight">World Cup 26</div>
-              <div className="text-[10px] text-muted-foreground tracking-wide">USA · Canada · Mexico</div>
+              <div className="text-sm font-bold tracking-tight flex items-center gap-1.5">
+                World Cup 26
+                {isLive && (
+                  <span className="inline-flex items-center gap-1 text-[9px] font-bold text-live">
+                    <span className="size-1.5 rounded-full bg-live animate-live" />LIVE
+                  </span>
+                )}
+              </div>
+              <div className="text-[10px] text-muted-foreground tracking-wide">
+                {isLive ? "Live data · football-data.org" : "USA · Canada · Mexico"}
+              </div>
             </div>
           </div>
           <RegionToggle region={region} setRegion={setRegion} />
@@ -99,17 +108,18 @@ function Tracker() {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
         {/* Hero / Next match */}
-        {nextMatch && <NextMatchCard match={nextMatch} region={region} now={now} broadcaster={bc.channel} />}
+        {nextMatch && <NextMatchCard match={nextMatch} region={region} now={now} broadcaster={bc.channel} teamView={teamView} />}
 
         {/* Live strip */}
         {live.length > 0 && (
           <section className="animate-fade-up">
             <SectionTitle label="Live now" accent />
             <div className="grid sm:grid-cols-2 gap-3">
-              {live.map(m => <MatchCard key={m.id} match={m} region={region} now={now} />)}
+              {live.map(m => <MatchCard key={m.id} match={m} region={region} now={now} teamView={teamView} />)}
             </div>
           </section>
         )}
+
 
         {/* Filters */}
         <section className="space-y-3">
