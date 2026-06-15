@@ -719,8 +719,13 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
   };
 
   const downloadCalendar = () => {
-    const ics = buildEnglandIcs(englandMatches);
-    downloadIcs("england-world-cup-2026.ics", ics);
+    try {
+      const ics = buildEnglandIcs(englandMatches);
+      downloadIcs("england-world-cup-2026.ics", ics);
+      toast.success("England calendar opened", { description: `${englandMatches.length} fixtures` });
+    } catch (err) {
+      toast.error("Couldn't open calendar", { description: err instanceof Error ? err.message : "Try again" });
+    }
   };
 
   return (
