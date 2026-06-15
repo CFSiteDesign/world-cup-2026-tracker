@@ -153,6 +153,10 @@ function LeaderboardPage() {
           </div>
         </div>
 
+        <EnglandCountdown matches={matches} names={wc?.names ?? {}} variant="banner" />
+
+
+
         {/* Stage filter — horizontal scroll on mobile */}
         <div className="-mx-4 sm:mx-0 overflow-x-auto no-scrollbar">
           <div className="flex gap-2 px-4 sm:px-0 min-w-max">
