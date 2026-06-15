@@ -237,21 +237,32 @@ function isIOS() {
     (ua.includes("Mac") && "ontouchend" in document);
 }
 
+function isAndroid() {
+  if (typeof navigator === "undefined") return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
 export function downloadIcs(filename: string, content: string) {
-  // Use a Blob URL + anchor click triggered inside the same user gesture.
-  // iOS Safari now blocks top-frame navigation to data: URLs, so we open the
-  // blob in a new tab there (Safari shows the native "Add to Calendar" sheet).
-  // Desktop/Android keep the download attribute so the .ics saves directly.
+  // iOS Safari/Chrome won't trigger the "Add to Calendar" sheet from a blob:
+  // URL — it just navigates to the blob page on the current origin (which on
+  // Lovable preview looks like "taking you to a Lovable link"). The reliable
+  // path on iOS is a data: URL with the text/calendar MIME — Safari hands it
+  // straight to the Calendar app. On Android and desktop we keep the blob +
+  // download attribute so the file saves normally.
+  if (isIOS()) {
+    const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(content)}`;
+    // Direct navigation in the same gesture — iOS opens the Calendar sheet.
+    window.location.href = dataUrl;
+    return;
+  }
+
   const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  if (isIOS()) {
-    a.target = "_blank";
-    a.rel = "noopener";
-  } else {
-    a.download = filename;
-  }
+  a.download = filename;
+  // Android Chrome handles .ics downloads but some browsers prefer a new tab.
+  if (isAndroid()) a.target = "_blank";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
