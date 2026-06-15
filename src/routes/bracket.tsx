@@ -180,6 +180,66 @@ function BracketPage() {
   );
 }
 
+function RoundAccordion({ stage, ties, now, teamView, isEnglandTie, feederIds, defaultOpen }: {
+  stage: Stage;
+  ties: Match[];
+  now: Date;
+  teamView: TeamView;
+  isEnglandTie: (m: Match) => boolean;
+  feederIds: Set<string>;
+  defaultOpen: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const hasEngland = ties.some(isEnglandTie);
+  const liveCount = ties.filter(m => matchStatus(m, now) === "LIVE").length;
+
+  return (
+    <section className={`rounded-xl bg-card shadow-card ${hasEngland ? "ring-1 ring-pitch" : "ring-hairline"}`}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
+        aria-expanded={open}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={`font-display text-xs font-extrabold uppercase tracking-[0.14em] ${hasEngland ? "text-pitch" : ""}`}>
+            {SHORT[stage]}
+          </span>
+          <span className="text-muted-foreground/60">·</span>
+          <span className="label-micro">{ties.length} {ties.length === 1 ? "tie" : "ties"}</span>
+          {liveCount > 0 && (
+            <span className="inline-flex items-center gap-1 ml-1">
+              <span className="size-1 rounded-full bg-pitch animate-live" />
+              <span className="font-display text-[10px] font-extrabold uppercase tracking-[0.12em] text-pitch">{liveCount}</span>
+            </span>
+          )}
+        </div>
+        <span className={`font-display text-xs font-extrabold text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
+          ▾
+        </span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-2.5 hairline-t pt-3">
+          {ties.length === 0 ? (
+            <div className="label-micro px-1">To be scheduled</div>
+          ) : (
+            ties.map(m => (
+              <TieCard
+                key={m.id}
+                match={m}
+                now={now}
+                teamView={teamView}
+                isEngland={isEnglandTie(m)}
+                isFeeder={feederIds.has(m.id)}
+              />
+            ))
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function Column({ stage, ties, now, teamView, isEnglandTie, feederIds }: {
   stage: Stage;
   ties: Match[];
