@@ -146,15 +146,18 @@ function Tracker() {
         </section>
 
         {/* England spotlight */}
-        {filter === "ENGLAND" && <EnglandPanel now={now} />}
+        {filter === "ENGLAND" && (
+          <EnglandPanel now={now} matches={matches} groups={groups} teamView={teamView} />
+        )}
 
         {/* Matches grouped by day */}
         <section>
-          <DayGroupedList matches={filtered} region={region} now={now} />
+          <DayGroupedList matches={filtered} region={region} now={now} teamView={teamView} />
           {filtered.length === 0 && (
             <div className="text-muted-foreground text-sm text-center py-12">No matches for this filter.</div>
           )}
         </section>
+
 
         {/* How to watch */}
         <section>
