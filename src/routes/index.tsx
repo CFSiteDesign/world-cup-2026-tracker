@@ -362,7 +362,7 @@ function HeroMatch({ match, region, now, broadcaster, teamView }: {
           {!live && (
             <div className="flex items-center gap-2">
               <span className="label-micro">Kickoff</span>
-              <span className="font-display text-sm font-extrabold uppercase tracking-wider text-pitch tabular-nums">
+              <span suppressHydrationWarning className="font-display text-sm font-extrabold uppercase tracking-wider text-pitch tabular-nums">
                 {countdown}
               </span>
             </div>
