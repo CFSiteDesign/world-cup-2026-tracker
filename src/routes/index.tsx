@@ -633,54 +633,8 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
     ).slice(0, 4);
   }, [matches, englandKO, now]);
 
-  // Reminders (client-only, in-tab)
-  const [reminders, setReminders] = useState<Record<string, boolean>>({});
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const saved = localStorage.getItem("wc-reminders");
-      if (saved) setReminders(JSON.parse(saved));
-    } catch { /* ignore */ }
-  }, []);
-  useEffect(() => {
-    if (mounted) localStorage.setItem("wc-reminders", JSON.stringify(reminders));
-  }, [reminders, mounted]);
-  // schedule notifications per render for matches with reminders enabled
-  const firedRef = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    if (!mounted) return;
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-    const timers: number[] = [];
-    for (const m of englandMatches) {
-      if (!reminders[m.id]) continue;
-      const fireAt = new Date(m.kickoffUTC).getTime() - 15 * 60 * 1000;
-      const delay = fireAt - Date.now();
-      const key = `${m.id}:${fireAt}`;
-      if (firedRef.current.has(key)) continue;
-      if (delay <= 0 || delay > 24 * 3600 * 1000) continue;
-      const id = window.setTimeout(() => {
-        firedRef.current.add(key);
-        if (Notification.permission === "granted") {
-          const opp = m.homeCode === ENG ? m.awayCode : m.homeCode;
-          new Notification(`England kick off in 15 min vs ${teamView(opp).name}`, {
-            body: `${m.stage}${m.group ? ` · Group ${m.group}` : ""} · ${m.venue}`,
-          });
-        }
-      }, delay);
-      timers.push(id);
-    }
-    return () => { timers.forEach(t => window.clearTimeout(t)); };
-  }, [reminders, englandMatches, mounted, teamView]);
 
-  const toggleReminder = async (id: string) => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      if (Notification.permission === "default") {
-        try { await Notification.requestPermission(); } catch { /* ignore */ }
-      }
-    }
-    setReminders(prev => ({ ...prev, [id]: !prev[id] }));
-  };
+
 
 
   return (
@@ -783,10 +737,8 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
             <FeedRow
               key={m.id} match={m} now={now} teamView={teamView}
               label="England play"
-              reminderOn={!!reminders[m.id]}
-              mounted={mounted}
-              onToggleReminder={() => toggleReminder(m.id)}
             />
+
           ))}
           {rivalMatches.filter(m => matchStatus(m, now) !== "FT").map(m => (
             <FeedRow
@@ -811,14 +763,12 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
   );
 }
 
-function FeedRow({ match, now, teamView, label, reminderOn, mounted, onToggleReminder }: {
+function FeedRow({ match, teamView, label }: {
   match: Match; now: Date; teamView: TeamView; label: string;
-  reminderOn?: boolean; mounted?: boolean; onToggleReminder?: () => void;
 }) {
   const home = teamView(match.homeCode);
   const away = teamView(match.awayCode);
   const dual = dualKickoff(match.kickoffUTC);
-  const canRemind = !!onToggleReminder;
   return (
     <div className="rounded-lg bg-surface ring-hairline p-3 sm:p-4">
       <div className="flex items-center justify-between gap-3 mb-1.5">
@@ -833,16 +783,6 @@ function FeedRow({ match, now, teamView, label, reminderOn, mounted, onToggleRem
           {dual.uk.time} {dual.uk.tz}
         </div>
       </div>
-      {canRemind && mounted && (
-        <div className="mt-2 flex items-center justify-end">
-          <button
-            onClick={onToggleReminder}
-            className={`font-display text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full ring-hairline transition-colors duration-200 ${reminderOn ? "bg-pitch text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}
-          >
-            {reminderOn ? "Reminder on" : "Remind me"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
