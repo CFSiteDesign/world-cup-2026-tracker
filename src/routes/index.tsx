@@ -8,7 +8,6 @@ import {
 import { getWorldCup, type GroupTable } from "@/lib/worldcup.functions";
 import {
   ENG, isGroupEMatch, dualKickoff, englandScenarios,
-  buildEnglandIcs, downloadIcs, addMatchToCalendar,
 } from "@/lib/england-utils";
 import { MobileTabBar } from "@/components/MobileTabBar";
 import { EnglandCountdown } from "@/components/EnglandCountdown";
