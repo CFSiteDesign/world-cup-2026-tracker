@@ -9,6 +9,23 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+function isChunkLoadError(err: unknown): boolean {
+  if (!err) return false;
+  const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);
+  return /Importing a module script failed|Failed to fetch dynamically imported module|ChunkLoadError|Loading chunk \d+ failed|error loading dynamically imported module/i.test(msg);
+}
+
+function reloadOnce() {
+  if (typeof window === "undefined") return;
+  const key = "wc-chunk-reload";
+  try {
+    const last = Number(sessionStorage.getItem(key) ?? "0");
+    if (Date.now() - last < 10_000) return; // avoid reload loops
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch { /* ignore */ }
+  window.location.reload();
+}
+
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
