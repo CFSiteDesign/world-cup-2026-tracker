@@ -14,6 +14,7 @@ import { Route as PredictRouteImport } from './routes/predict'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as BracketRouteImport } from './routes/bracket'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicCalendarRouteImport } from './routes/api/public/calendar'
 
 const ResultsRoute = ResultsRouteImport.update({
   id: '/results',
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCalendarRoute = ApiPublicCalendarRouteImport.update({
+  id: '/api/public/calendar',
+  path: '/api/public/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/predict': typeof PredictRoute
   '/results': typeof ResultsRoute
+  '/api/public/calendar': typeof ApiPublicCalendarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof LeaderboardRoute
   '/predict': typeof PredictRoute
   '/results': typeof ResultsRoute
+  '/api/public/calendar': typeof ApiPublicCalendarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/predict': typeof PredictRoute
   '/results': typeof ResultsRoute
+  '/api/public/calendar': typeof ApiPublicCalendarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bracket' | '/leaderboard' | '/predict' | '/results'
+  fullPaths:
+    | '/'
+    | '/bracket'
+    | '/leaderboard'
+    | '/predict'
+    | '/results'
+    | '/api/public/calendar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bracket' | '/leaderboard' | '/predict' | '/results'
-  id: '__root__' | '/' | '/bracket' | '/leaderboard' | '/predict' | '/results'
+  to:
+    | '/'
+    | '/bracket'
+    | '/leaderboard'
+    | '/predict'
+    | '/results'
+    | '/api/public/calendar'
+  id:
+    | '__root__'
+    | '/'
+    | '/bracket'
+    | '/leaderboard'
+    | '/predict'
+    | '/results'
+    | '/api/public/calendar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   LeaderboardRoute: typeof LeaderboardRoute
   PredictRoute: typeof PredictRoute
   ResultsRoute: typeof ResultsRoute
+  ApiPublicCalendarRoute: typeof ApiPublicCalendarRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/calendar': {
+      id: '/api/public/calendar'
+      path: '/api/public/calendar'
+      fullPath: '/api/public/calendar'
+      preLoaderRoute: typeof ApiPublicCalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeaderboardRoute: LeaderboardRoute,
   PredictRoute: PredictRoute,
   ResultsRoute: ResultsRoute,
+  ApiPublicCalendarRoute: ApiPublicCalendarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

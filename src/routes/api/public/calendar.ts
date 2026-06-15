@@ -4,7 +4,9 @@ function decodeCalendarPayload(value: string | null) {
   if (!value || value.length > 20_000) return null;
   try {
     const padded = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
-    const content = Buffer.from(padded, "base64").toString("utf8");
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    const content = new TextDecoder().decode(bytes);
     if (!content.startsWith("BEGIN:VCALENDAR") || !content.includes("END:VCALENDAR")) return null;
     return content;
   } catch {
