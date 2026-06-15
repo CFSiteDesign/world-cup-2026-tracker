@@ -339,6 +339,14 @@ function HeroMatch({ match, region, now, broadcaster, teamView }: {
                 <div className="label-micro mb-1">{day}</div>
                 <div className="scoreline text-5xl sm:text-7xl">{time}</div>
                 <div className="label-micro mt-2">{tzLabel}</div>
+                {(match.homeCode === ENG || match.awayCode === ENG) && (() => {
+                  const dual = dualKickoff(match.kickoffUTC);
+                  return (
+                    <div className="label-micro mt-3 leading-relaxed">
+                      {dual.uk.time} {dual.uk.tz} · {dual.au.time} {dual.au.tz} ({dual.au.day})
+                    </div>
+                  );
+                })()}
               </>
             )}
           </div>
