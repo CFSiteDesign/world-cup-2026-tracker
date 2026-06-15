@@ -30,6 +30,11 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
+  useEffect(() => {
+    // Stale lazy chunk after a redeploy can cause an "Importing a module script failed"
+    // mid-navigation; TanStack treats it as a not-found. Refresh once to fetch the new chunk.
+    reloadOnce();
+  }, []);
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
