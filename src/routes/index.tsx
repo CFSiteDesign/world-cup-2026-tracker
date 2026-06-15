@@ -360,14 +360,7 @@ function HeroMatch({ match, region, now, broadcaster, teamView }: {
                 <div className="label-micro mb-1">{day}</div>
                 <div className="scoreline text-5xl sm:text-7xl">{time}</div>
                 <div className="label-micro mt-2">{tzLabel}</div>
-                {(match.homeCode === ENG || match.awayCode === ENG) && (() => {
-                  const dual = dualKickoff(match.kickoffUTC);
-                  return (
-                    <div className="label-micro mt-3 leading-relaxed">
-                      {dual.uk.time} {dual.uk.tz} · {dual.au.time} {dual.au.tz} ({dual.au.day})
-                    </div>
-                  );
-                })()}
+                {/* dual-timezone line removed for clarity */}
               </>
             )}
           </div>
@@ -714,7 +707,7 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
               vs {teamView(next.homeCode === ENG ? next.awayCode : next.homeCode).name}
             </div>
             <div suppressHydrationWarning className="font-display text-sm font-extrabold text-pitch tabular-nums mt-1">{nextCountdown}</div>
-            <div className="label-micro mt-1">{nextDual.uk.time} {nextDual.uk.tz} · {nextDual.au.time} {nextDual.au.tz} ({nextDual.au.day})</div>
+            <div className="label-micro mt-1">{nextDual.uk.time} {nextDual.uk.tz}</div>
           </div>
         )}
       </div>
@@ -837,7 +830,7 @@ function FeedRow({ match, now, teamView, label, reminderOn, mounted, onToggleRem
           {home.name} <span className="text-muted-foreground mx-1">vs</span> {away.name}
         </div>
         <div className="label-micro tabular-nums">
-          {dual.uk.time} {dual.uk.tz} · {dual.au.time} {dual.au.tz} ({dual.au.day})
+          {dual.uk.time} {dual.uk.tz}
         </div>
       </div>
       {canRemind && mounted && (
