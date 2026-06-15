@@ -507,16 +507,15 @@ function MatchCard({ match, region, now, teamView }: { match: Match; region: Reg
           </div>
         </div>
 
-        {(match.city || match.venue || match.bracketNote) && (
-          <div className="mt-4 pt-3 hairline-t flex items-center justify-between gap-3">
-            <div className="label-micro truncate">
-              {match.venue || ""}{match.venue && match.city ? " · " : ""}{match.city || ""}
-            </div>
-            {match.bracketNote && (
-              <div className="label-micro truncate max-w-[60%] text-right">{match.bracketNote}</div>
-            )}
+        <div className="mt-4 pt-3 hairline-t flex items-center justify-between gap-3">
+          <div className="label-micro truncate min-w-0">
+            {match.venue || ""}{match.venue && match.city ? " · " : ""}{match.city || ""}
+            {match.bracketNote ? (match.venue || match.city ? " · " : "") + match.bracketNote : ""}
           </div>
-        )}
+          {status !== "FT" && (
+            <AddToCalendarButton match={match} teamView={teamView} />
+          )}
+        </div>
       </div>
     </article>
   );
