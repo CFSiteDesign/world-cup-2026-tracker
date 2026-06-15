@@ -684,7 +684,8 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
           </div>
         </div>
         {next && nextTime && nextDual && (
-          <div className="text-right">
+          <div className="text-right ml-auto">
+
             <div className="label-micro">Next match</div>
             <div className="font-display text-lg font-extrabold uppercase tracking-tight mt-1">
               vs {teamView(next.homeCode === ENG ? next.awayCode : next.homeCode).name}
