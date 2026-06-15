@@ -37,7 +37,7 @@ function Tracker() {
   const [filter, setFilter] = useState<Filter>("ALL");
   const [now, setNow] = useState(new Date());
 
-  const { data, isError } = useQuery({
+  const { data, isError, isLoading } = useQuery({
     queryKey: ["worldcup"],
     queryFn: () => getWorldCup(),
     staleTime: 60_000,
@@ -50,6 +50,7 @@ function Tracker() {
   const crests = data?.crests ?? {};
   const liveNames = data?.names ?? {};
   const isLive = !!data && data.matches.length > 0 && !isError;
+  const dataReady = !isLoading && !!data;
 
   useEffect(() => {
     const saved = (typeof window !== "undefined" && localStorage.getItem("wc-region")) as Region | null;
