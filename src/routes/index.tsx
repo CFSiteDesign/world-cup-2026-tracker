@@ -860,7 +860,7 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
           onClick={downloadCalendar}
           className="font-display text-xs font-extrabold uppercase tracking-wider px-3 py-2 rounded-lg bg-pitch text-background hover:opacity-90 transition-opacity"
         >
-          Download England calendar (.ics)
+          Add England calendar
         </button>
       </div>
     </section>

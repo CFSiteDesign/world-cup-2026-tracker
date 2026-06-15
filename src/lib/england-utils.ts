@@ -242,17 +242,44 @@ function isAndroid() {
   return /Android/i.test(navigator.userAgent);
 }
 
+function isMobile() {
+  return isIOS() || isAndroid();
+}
+
+function base64UrlEncode(input: string) {
+  const bytes = new TextEncoder().encode(input);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function calendarFileUrl(filename: string, content: string) {
+  return `/api/public/calendar?filename=${encodeURIComponent(filename)}&ics=${base64UrlEncode(content)}`;
+}
+
+function googleCalendarUrl(m: Match, names: Record<string, string> = {}) {
+  const start = new Date(m.kickoffUTC);
+  const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+  const homeName = names[m.homeCode] ?? getTeam(m.homeCode).name;
+  const awayName = names[m.awayCode] ?? getTeam(m.awayCode).name;
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `${homeName} vs ${awayName} — World Cup 26`,
+    dates: `${icsDate(start.toISOString())}/${icsDate(end.toISOString())}`,
+    details: `${m.stage}${m.group ? ` · Group ${m.group}` : ""}`,
+    location: [m.venue, m.city].filter(Boolean).join(", "),
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 export function downloadIcs(filename: string, content: string) {
-  // iOS Safari/Chrome won't trigger the "Add to Calendar" sheet from a blob:
-  // URL — it just navigates to the blob page on the current origin (which on
-  // Lovable preview looks like "taking you to a Lovable link"). The reliable
-  // path on iOS is a data: URL with the text/calendar MIME — Safari hands it
-  // straight to the Calendar app. On Android and desktop we keep the blob +
-  // download attribute so the file saves normally.
-  if (isIOS()) {
-    const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(content)}`;
-    // Direct navigation in the same gesture — iOS opens the Calendar sheet.
-    window.location.href = dataUrl;
+  // Mobile browsers do not reliably hand blob: or data: URLs to Calendar.
+  // Route through a real HTTPS text/calendar response so iOS/Android can open
+  // the native calendar/add-event flow instead of a Lovable blob page.
+  if (isMobile()) {
+    window.location.href = calendarFileUrl(filename, content);
     return;
   }
 
@@ -274,6 +301,10 @@ export function addMatchToCalendar(m: Match, names: Record<string, string> = {})
   const ics = buildMatchIcs(m, names);
   const home = (names[m.homeCode] ?? getTeam(m.homeCode).name).toLowerCase().replace(/\s+/g, "-");
   const away = (names[m.awayCode] ?? getTeam(m.awayCode).name).toLowerCase().replace(/\s+/g, "-");
+  if (isAndroid()) {
+    window.location.href = googleCalendarUrl(m, names);
+    return;
+  }
   downloadIcs(`wc26-${home}-vs-${away}.ics`, ics);
 }
 
