@@ -56,6 +56,7 @@ function PredictPage() {
 
   const matches: Match[] = wc?.matches?.length ? wc.matches : FALLBACK_MATCHES;
   const liveNames = wc?.names ?? {};
+  const crests = wc?.crests ?? {};
 
   const englandMatches = useMemo(
     () => matches.filter(isEnglandMatch).sort((a, b) => a.kickoffUTC.localeCompare(b.kickoffUTC)),
@@ -63,6 +64,11 @@ function PredictPage() {
   );
 
   const teamName = (code: string) => (liveNames[code] ?? getTeam(code).name).toUpperCase();
+  const teamView = (code: string) => ({
+    code,
+    name: liveNames[code] ?? getTeam(code).name,
+    crest: crests[code],
+  });
 
   const setName = (name: string) => {
     const n = name.trim().slice(0, 40);
