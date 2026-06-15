@@ -10,6 +10,9 @@ import {
   ENG, isGroupEMatch, dualKickoff, englandScenarios,
   buildEnglandIcs, downloadIcs, addMatchToCalendar,
 } from "@/lib/england-utils";
+import { MobileTabBar } from "@/components/MobileTabBar";
+import { EnglandCountdown } from "@/components/EnglandCountdown";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -141,9 +144,12 @@ function Tracker() {
       </header>
 
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-12">
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-12 pb-28 sm:pb-12">
         {/* Hero / Next match */}
         {nextMatch && <HeroMatch match={nextMatch} region={region} now={now} broadcaster={bc.channel} teamView={teamView} />}
+
+        {/* England countdown */}
+        <EnglandCountdown matches={matches} names={data?.names ?? {}} variant="hero" />
 
         {/* Live strip */}
         {live.length > 0 && (
