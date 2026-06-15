@@ -292,18 +292,26 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
   const submit = async () => {
     if (!player || locked) return;
     const h = parseInt(home, 10), a = parseInt(away, 10);
-    if (isNaN(h) || isNaN(a) || h < 0 || a < 0) { setMsg("Enter valid numbers"); return; }
+    if (isNaN(h) || isNaN(a) || h < 0 || a < 0) {
+      toast.error("Enter valid scores");
+      return;
+    }
     setSaving(true); setMsg(null);
     const { error } = await supabase.from("predictions").upsert(
       { player_name: player, match_id: match.id, home_pred: h, away_pred: a, updated_at: new Date().toISOString() },
       { onConflict: "player_name,match_id" }
     );
     setSaving(false);
-    if (error) { setMsg(error.message); return; }
-    setMsg("Saved");
-    setTimeout(() => setMsg(null), 1500);
+    if (error) {
+      toast.error("Could not save", { description: error.message });
+      return;
+    }
+    toast.success(`${teamName(match.homeCode)} ${h}–${a} ${teamName(match.awayCode)}`, {
+      description: "Prediction saved",
+    });
     onChange();
   };
+
 
   const homeName = teamName(match.homeCode);
   const awayName = teamName(match.awayCode);
