@@ -56,6 +56,7 @@ function PredictPage() {
 
   const matches: Match[] = wc?.matches?.length ? wc.matches : FALLBACK_MATCHES;
   const liveNames = wc?.names ?? {};
+  const crests = wc?.crests ?? {};
 
   const englandMatches = useMemo(
     () => matches.filter(isEnglandMatch).sort((a, b) => a.kickoffUTC.localeCompare(b.kickoffUTC)),
@@ -63,6 +64,11 @@ function PredictPage() {
   );
 
   const teamName = (code: string) => (liveNames[code] ?? getTeam(code).name).toUpperCase();
+  const teamView = (code: string) => ({
+    code,
+    name: liveNames[code] ?? getTeam(code).name,
+    crest: crests[code],
+  });
 
   const setName = (name: string) => {
     const n = name.trim().slice(0, 40);
@@ -184,6 +190,7 @@ function PredictPage() {
                   player={player}
                   preds={preds ?? []}
                   teamName={teamName}
+                  teamView={teamView}
                   onChange={() => qc.invalidateQueries({ queryKey: ["predictions"] })}
                 />
               </div>
@@ -244,9 +251,11 @@ function SectionHeader({ label }: { label: string }) {
   );
 }
 
-function PredictionRow({ match, now, mounted, player, preds, teamName, onChange }: {
+function PredictionRow({ match, now, mounted, player, preds, teamName, teamView, onChange }: {
   match: Match; now: Date; mounted: boolean; player: string;
-  preds: Prediction[]; teamName: (c: string) => string; onChange: () => void;
+  preds: Prediction[]; teamName: (c: string) => string;
+  teamView: (c: string) => { code: string; name: string; crest?: string };
+  onChange: () => void;
 }) {
   const status = matchStatus(match, now);
   const locked = status !== "UPCOMING";
@@ -309,8 +318,11 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, onChange 
       </div>
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
-        <div className="text-right font-display text-sm sm:text-base font-extrabold uppercase tracking-tight truncate">
-          {homeName}
+        <div className="flex items-center justify-end gap-2 min-w-0">
+          <span className="font-display text-sm sm:text-base font-extrabold uppercase tracking-tight truncate">
+            {homeName}
+          </span>
+          <PredictCrest team={teamView(match.homeCode)} />
         </div>
         <div className="flex items-center gap-2">
           <input
@@ -327,8 +339,11 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, onChange 
             className="w-14 text-center bg-surface ring-hairline rounded-lg py-2 scoreline text-xl text-foreground disabled:opacity-50"
           />
         </div>
-        <div className="text-left font-display text-sm sm:text-base font-extrabold uppercase tracking-tight truncate">
-          {awayName}
+        <div className="flex items-center justify-start gap-2 min-w-0">
+          <PredictCrest team={teamView(match.awayCode)} />
+          <span className="font-display text-sm sm:text-base font-extrabold uppercase tracking-tight truncate">
+            {awayName}
+          </span>
         </div>
       </div>
 
@@ -349,5 +364,20 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, onChange 
         {msg && <span className="label-micro text-pitch">{msg}</span>}
       </div>
     </article>
+  );
+}
+
+function PredictCrest({ team }: { team: { code: string; name: string; crest?: string } }) {
+  if (team.crest) {
+    return (
+      <div className="size-7 rounded-md bg-surface grid place-items-center overflow-hidden shrink-0 ring-hairline">
+        <img src={team.crest} alt="" className="w-[72%] h-[72%] object-contain" loading="lazy" />
+      </div>
+    );
+  }
+  return (
+    <div className="size-7 rounded-md bg-surface grid place-items-center shrink-0 ring-hairline">
+      <span className="font-display text-[10px] font-extrabold uppercase tracking-tighter">{team.code}</span>
+    </div>
   );
 }
