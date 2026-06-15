@@ -837,7 +837,7 @@ function FeedRow({ match, now, teamView, label, reminderOn, mounted, onToggleRem
           {home.name} <span className="text-muted-foreground mx-1">vs</span> {away.name}
         </div>
         <div className="label-micro tabular-nums">
-          {dual.uk.time} {dual.uk.tz} · {dual.au.time} {dual.au.tz} ({dual.au.day})
+          {dual.uk.time} {dual.uk.tz}
         </div>
       </div>
       {canRemind && mounted && (
