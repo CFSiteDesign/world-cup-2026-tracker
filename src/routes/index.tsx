@@ -69,11 +69,16 @@ function Tracker() {
     [matches]
   );
 
+  const upcoming = useMemo(
+    () => sorted.filter(m => matchStatus(m, now) !== "FT"),
+    [sorted, now]
+  );
+
   const filtered = useMemo(() => {
-    if (filter === "ENGLAND") return sorted.filter(m => m.homeCode === "ENG" || m.awayCode === "ENG");
-    if (filter === "ALL") return sorted;
-    return sorted.filter(m => m.stage === filter);
-  }, [filter, sorted]);
+    if (filter === "ENGLAND") return upcoming.filter(m => m.homeCode === "ENG" || m.awayCode === "ENG");
+    if (filter === "ALL") return upcoming;
+    return upcoming.filter(m => m.stage === filter);
+  }, [filter, upcoming]);
 
   const nextMatch = useMemo(
     () => sorted.find(m => matchStatus(m, now) !== "FT"),
