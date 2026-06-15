@@ -87,16 +87,16 @@ function ResultsPage() {
             </div>
           </Link>
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-            <Link to="/" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
+            <Link to="/" className="hidden sm:inline-block font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
               Home
             </Link>
-            <Link to="/bracket" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
+            <Link to="/bracket" className="hidden sm:inline-block font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
               Bracket
             </Link>
-            <Link to="/predict" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
+            <Link to="/predict" className="hidden sm:inline-block font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
               Predict
             </Link>
-            <Link to="/leaderboard" className="font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
+            <Link to="/leaderboard" className="hidden sm:inline-block font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors duration-200">
               Board
             </Link>
             <div className="label-micro hidden sm:block">{TIMEZONES[region].label}</div>
