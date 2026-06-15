@@ -190,6 +190,7 @@ function PredictPage() {
                   player={player}
                   preds={preds ?? []}
                   teamName={teamName}
+                  teamView={teamView}
                   onChange={() => qc.invalidateQueries({ queryKey: ["predictions"] })}
                 />
               </div>
