@@ -37,7 +37,7 @@ function Tracker() {
   const [filter, setFilter] = useState<Filter>("ALL");
   const [now, setNow] = useState(new Date());
 
-  const { data, isError } = useQuery({
+  const { data, isError, isLoading } = useQuery({
     queryKey: ["worldcup"],
     queryFn: () => getWorldCup(),
     staleTime: 60_000,
@@ -50,6 +50,7 @@ function Tracker() {
   const crests = data?.crests ?? {};
   const liveNames = data?.names ?? {};
   const isLive = !!data && data.matches.length > 0 && !isError;
+  const dataReady = !isLoading && !!data;
 
   useEffect(() => {
     const saved = (typeof window !== "undefined" && localStorage.getItem("wc-region")) as Region | null;
@@ -146,7 +147,8 @@ function Tracker() {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-12 pb-28 sm:pb-12">
         {/* Hero / Next match */}
-        {nextMatch && <HeroMatch match={nextMatch} region={region} now={now} broadcaster={bc.channel} teamView={teamView} />}
+        {dataReady && nextMatch && <HeroMatch match={nextMatch} region={region} now={now} broadcaster={bc.channel} teamView={teamView} />}
+        {!dataReady && <div className="h-48 sm:h-64 rounded-2xl bg-card/40 animate-pulse hairline" />}
 
         {/* England countdown */}
         <EnglandCountdown matches={matches} names={data?.names ?? {}} variant="hero" />
