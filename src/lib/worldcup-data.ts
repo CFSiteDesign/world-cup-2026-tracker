@@ -191,6 +191,9 @@ export function matchStatus(m: Match, now = new Date()): "FT" | "LIVE" | "UPCOMI
   const n = now.getTime();
   if (typeof m.homeScore === "number" && typeof m.awayScore === "number") return "FT";
   if (n >= k && n < k + 110 * 60 * 1000) return "LIVE";
+  // Past kickoff window with no score reported — treat as finished so it
+  // drops out of "upcoming" lists on the home page.
+  if (n >= k + 110 * 60 * 1000) return "FT";
   return "UPCOMING";
 }
 
