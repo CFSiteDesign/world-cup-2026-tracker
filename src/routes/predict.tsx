@@ -280,7 +280,6 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
   const [home, setHome] = useState<string>("");
   const [away, setAway] = useState<string>("");
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
     setHome(mine ? String(mine.home_pred) : "");
@@ -296,7 +295,7 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
       toast.error("Enter valid scores");
       return;
     }
-    setSaving(true); setMsg(null);
+    setSaving(true);
     const { error } = await supabase.from("predictions").upsert(
       { player_name: player, match_id: match.id, home_pred: h, away_pred: a, updated_at: new Date().toISOString() },
       { onConflict: "player_name,match_id" }
