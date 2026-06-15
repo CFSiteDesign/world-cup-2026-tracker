@@ -346,8 +346,6 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
           </span>
         </div>
       </div>
-        </div>
-      </div>
 
       <div className="mt-4 pt-3 hairline-t flex items-center justify-between gap-3 flex-wrap">
         <div className="label-micro">
