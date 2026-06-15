@@ -735,20 +735,19 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
         <div className="space-y-2">
           {englandMatches.filter(m => matchStatus(m, now) !== "FT").map(m => (
             <FeedRow
-              key={m.id} match={m} now={now} teamView={teamView}
+              key={m.id} match={m} now={now} teamView={teamView} region={region}
               label="England play"
             />
-
           ))}
           {rivalMatches.filter(m => matchStatus(m, now) !== "FT").map(m => (
             <FeedRow
-              key={m.id} match={m} now={now} teamView={teamView}
+              key={m.id} match={m} now={now} teamView={teamView} region={region}
               label="Rival fixture"
             />
           ))}
           {feederMatches.map(m => (
             <FeedRow
-              key={m.id} match={m} now={now} teamView={teamView}
+              key={m.id} match={m} now={now} teamView={teamView} region={region}
               label={`Decides England's ${shortStage(m.stage)} opponent`}
             />
           ))}
