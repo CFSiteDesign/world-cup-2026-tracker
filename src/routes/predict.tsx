@@ -366,3 +366,18 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
     </article>
   );
 }
+
+function PredictCrest({ team }: { team: { code: string; name: string; crest?: string } }) {
+  if (team.crest) {
+    return (
+      <div className="size-7 rounded-md bg-surface grid place-items-center overflow-hidden shrink-0 ring-hairline">
+        <img src={team.crest} alt="" className="w-[72%] h-[72%] object-contain" loading="lazy" />
+      </div>
+    );
+  }
+  return (
+    <div className="size-7 rounded-md bg-surface grid place-items-center shrink-0 ring-hairline">
+      <span className="font-display text-[10px] font-extrabold uppercase tracking-tighter">{team.code}</span>
+    </div>
+  );
+}
