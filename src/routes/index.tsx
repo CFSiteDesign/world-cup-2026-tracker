@@ -6,6 +6,10 @@ import {
   getTeam, formatKickoff, matchStatus, type Region, type Match, type Stage,
 } from "@/lib/worldcup-data";
 import { getWorldCup, type GroupTable } from "@/lib/worldcup.functions";
+import {
+  ENG, isGroupEMatch, dualKickoff, englandScenarios,
+  buildEnglandIcs, downloadIcs,
+} from "@/lib/england-utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
