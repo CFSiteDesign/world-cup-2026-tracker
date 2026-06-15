@@ -383,7 +383,7 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
             {saving ? "Saving…" : mine ? "Update" : "Submit"}
           </button>
         )}
-        {msg && <span className="label-micro text-pitch">{msg}</span>}
+        
       </div>
     </article>
   );
