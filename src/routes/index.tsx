@@ -807,7 +807,7 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
           )}
         </div>
       </div>
-
+    </section>
   );
 }
 
