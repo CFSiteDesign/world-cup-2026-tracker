@@ -661,7 +661,7 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
               vs {teamView(next.homeCode === ENG ? next.awayCode : next.homeCode).name}
             </div>
             <div suppressHydrationWarning className="font-display text-sm font-extrabold text-pitch tabular-nums mt-1">{nextCountdown}</div>
-            <div className="label-micro mt-1">{nextDual.uk.time} {nextDual.uk.tz}</div>
+            <div className="label-micro mt-1">{nextTime.time} {nextTime.tzLabel}</div>
           </div>
         )}
       </div>
