@@ -259,6 +259,18 @@ function calendarFileUrl(filename: string, content: string) {
   return `/api/public/calendar?filename=${encodeURIComponent(filename)}&ics=${base64UrlEncode(content)}`;
 }
 
+async function shareCalendarFile(filename: string, content: string, title = "World Cup 26 fixture") {
+  if (typeof navigator === "undefined" || typeof navigator.share !== "function" || typeof File === "undefined") {
+    return false;
+  }
+  const file = new File([content], filename, { type: "text/calendar" });
+  if (typeof navigator.canShare === "function" && !navigator.canShare({ files: [file] })) {
+    return false;
+  }
+  await navigator.share({ title, files: [file] });
+  return true;
+}
+
 function googleCalendarUrl(m: Match, names: Record<string, string> = {}) {
   const start = new Date(m.kickoffUTC);
   const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
@@ -274,11 +286,12 @@ function googleCalendarUrl(m: Match, names: Record<string, string> = {}) {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
-export function downloadIcs(filename: string, content: string) {
+export async function downloadIcs(filename: string, content: string, title?: string) {
   // Mobile browsers do not reliably hand blob: or data: URLs to Calendar.
-  // Route through a real HTTPS text/calendar response so iOS/Android can open
-  // the native calendar/add-event flow instead of a Lovable blob page.
+  // First open the native share sheet with a real .ics file; if unavailable,
+  // fall back to an HTTPS text/calendar response instead of a blob Lovable URL.
   if (isMobile()) {
+    if (await shareCalendarFile(filename, content, title)) return;
     window.location.href = calendarFileUrl(filename, content);
     return;
   }
@@ -297,14 +310,15 @@ export function downloadIcs(filename: string, content: string) {
 }
 
 
-export function addMatchToCalendar(m: Match, names: Record<string, string> = {}) {
+export async function addMatchToCalendar(m: Match, names: Record<string, string> = {}) {
   const ics = buildMatchIcs(m, names);
   const home = (names[m.homeCode] ?? getTeam(m.homeCode).name).toLowerCase().replace(/\s+/g, "-");
   const away = (names[m.awayCode] ?? getTeam(m.awayCode).name).toLowerCase().replace(/\s+/g, "-");
+  const title = `${names[m.homeCode] ?? getTeam(m.homeCode).name} vs ${names[m.awayCode] ?? getTeam(m.awayCode).name}`;
   if (isAndroid()) {
     window.location.href = googleCalendarUrl(m, names);
     return;
   }
-  downloadIcs(`wc26-${home}-vs-${away}.ics`, ics);
+  await downloadIcs(`wc26-${home}-vs-${away}.ics`, ics, title);
 }
 

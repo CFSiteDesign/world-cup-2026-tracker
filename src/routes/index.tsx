@@ -545,7 +545,7 @@ function MatchCard({ match, region, now, teamView }: { match: Match; region: Reg
 }
 
 function AddToCalendarButton({ match, teamView }: { match: Match; teamView: TeamView }) {
-  const handle = (e: React.MouseEvent) => {
+  const handle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const names: Record<string, string> = {
@@ -553,7 +553,7 @@ function AddToCalendarButton({ match, teamView }: { match: Match; teamView: Team
       [match.awayCode]: teamView(match.awayCode).name,
     };
     try {
-      addMatchToCalendar(match, names);
+      await addMatchToCalendar(match, names);
       toast.success("Added to calendar", { description: `${names[match.homeCode]} vs ${names[match.awayCode]}` });
     } catch (err) {
       toast.error("Couldn't open calendar", { description: err instanceof Error ? err.message : "Try again" });
@@ -718,10 +718,10 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
     setReminders(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const downloadCalendar = () => {
+  const downloadCalendar = async () => {
     try {
       const ics = buildEnglandIcs(englandMatches);
-      downloadIcs("england-world-cup-2026.ics", ics);
+      await downloadIcs("england-world-cup-2026.ics", ics, "England World Cup 26 fixtures");
       toast.success("England calendar opened", { description: `${englandMatches.length} fixtures` });
     } catch (err) {
       toast.error("Couldn't open calendar", { description: err instanceof Error ? err.message : "Try again" });
