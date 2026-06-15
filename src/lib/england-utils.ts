@@ -199,7 +199,53 @@ export function buildEnglandIcs(matches: Match[], names: Record<string, string> 
   return lines.join("\r\n");
 }
 
+export function buildMatchIcs(m: Match, names: Record<string, string> = {}): string {
+  const start = new Date(m.kickoffUTC);
+  const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+  const homeName = names[m.homeCode] ?? getTeam(m.homeCode).name;
+  const awayName = names[m.awayCode] ?? getTeam(m.awayCode).name;
+  const summary = `${homeName} vs ${awayName} — World Cup 26`;
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//World Cup 26 Tracker//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${m.id}@worldcup26-tracker`,
+    `DTSTAMP:${icsDate(new Date().toISOString())}`,
+    `DTSTART:${icsDate(start.toISOString())}`,
+    `DTEND:${icsDate(end.toISOString())}`,
+    `SUMMARY:${icsEscape(summary)}`,
+    `LOCATION:${icsEscape([m.venue, m.city].filter(Boolean).join(", "))}`,
+    `DESCRIPTION:${icsEscape(`${m.stage}${m.group ? ` · Group ${m.group}` : ""}`)}`,
+    "BEGIN:VALARM",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:Kick off in 15 minutes",
+    "TRIGGER:-PT15M",
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+  return lines.join("\r\n");
+}
+
+function isIOS() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  return /iPad|iPhone|iPod/.test(ua) ||
+    (ua.includes("Mac") && "ontouchend" in document);
+}
+
 export function downloadIcs(filename: string, content: string) {
+  // iOS Safari ignores the download attribute on blob URLs and fails to hand
+  // .ics off to Calendar. A data: URL with the calendar MIME triggers the
+  // native "Add to Calendar" sheet on iPhone and downloads cleanly on Android.
+  if (isIOS()) {
+    const dataUrl = "data:text/calendar;charset=utf-8," + encodeURIComponent(content);
+    window.location.href = dataUrl;
+    return;
+  }
   const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -210,3 +256,11 @@ export function downloadIcs(filename: string, content: string) {
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+export function addMatchToCalendar(m: Match, names: Record<string, string> = {}) {
+  const ics = buildMatchIcs(m, names);
+  const home = (names[m.homeCode] ?? getTeam(m.homeCode).name).toLowerCase().replace(/\s+/g, "-");
+  const away = (names[m.awayCode] ?? getTeam(m.awayCode).name).toLowerCase().replace(/\s+/g, "-");
+  downloadIcs(`wc26-${home}-vs-${away}.ics`, ics);
+}
+

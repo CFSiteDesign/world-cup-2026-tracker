@@ -8,7 +8,7 @@ import {
 import { getWorldCup, type GroupTable } from "@/lib/worldcup.functions";
 import {
   ENG, isGroupEMatch, dualKickoff, englandScenarios,
-  buildEnglandIcs, downloadIcs,
+  buildEnglandIcs, downloadIcs, addMatchToCalendar,
 } from "@/lib/england-utils";
 
 export const Route = createFileRoute("/")({
@@ -375,6 +375,9 @@ function HeroMatch({ match, region, now, broadcaster, teamView }: {
               </span>
             </div>
           )}
+          {status !== "FT" && (
+            <AddToCalendarButton match={match} teamView={teamView} />
+          )}
         </div>
       </div>
     </article>
@@ -507,20 +510,47 @@ function MatchCard({ match, region, now, teamView }: { match: Match; region: Reg
           </div>
         </div>
 
-        {(match.city || match.venue || match.bracketNote) && (
-          <div className="mt-4 pt-3 hairline-t flex items-center justify-between gap-3">
-            <div className="label-micro truncate">
-              {match.venue || ""}{match.venue && match.city ? " · " : ""}{match.city || ""}
-            </div>
-            {match.bracketNote && (
-              <div className="label-micro truncate max-w-[60%] text-right">{match.bracketNote}</div>
-            )}
+        <div className="mt-4 pt-3 hairline-t flex items-center justify-between gap-3">
+          <div className="label-micro truncate min-w-0">
+            {match.venue || ""}{match.venue && match.city ? " · " : ""}{match.city || ""}
+            {match.bracketNote ? (match.venue || match.city ? " · " : "") + match.bracketNote : ""}
           </div>
-        )}
+          {status !== "FT" && (
+            <AddToCalendarButton match={match} teamView={teamView} />
+          )}
+        </div>
       </div>
     </article>
   );
 }
+
+function AddToCalendarButton({ match, teamView }: { match: Match; teamView: TeamView }) {
+  const handle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const names: Record<string, string> = {
+      [match.homeCode]: teamView(match.homeCode).name,
+      [match.awayCode]: teamView(match.awayCode).name,
+    };
+    addMatchToCalendar(match, names);
+  };
+  return (
+    <button
+      type="button"
+      onClick={handle}
+      aria-label="Add match to calendar"
+      className="shrink-0 inline-flex items-center gap-1.5 rounded-md ring-hairline bg-surface px-2.5 py-1.5 font-display text-[10px] font-extrabold uppercase tracking-wider text-foreground hover:text-pitch hover:ring-[color:var(--pitch)] transition-colors duration-200"
+    >
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="16" rx="1" />
+        <path d="M3 9h18M8 3v4M16 3v4M12 13v4M10 15h4" />
+      </svg>
+      Add to calendar
+    </button>
+  );
+}
+
+
 
 function ScoreDigit({ value, large = false }: { value: number; large?: boolean }) {
   // Animate when value changes
