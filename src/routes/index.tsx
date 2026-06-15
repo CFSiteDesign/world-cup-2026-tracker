@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
-  MATCHES, STAGES, BROADCASTERS, TIMEZONES, ENGLAND_GROUP_TABLE,
+  MATCHES as FALLBACK_MATCHES, STAGES, BROADCASTERS, TIMEZONES, ENGLAND_GROUP_TABLE,
   getTeam, formatKickoff, matchStatus, type Region, type Match, type Stage,
 } from "@/lib/worldcup-data";
+import { getWorldCup, type GroupTable } from "@/lib/worldcup.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "World Cup 2026 Tracker — Every Match, Every Time" },
-      { name: "description", content: "Fixtures, kickoff times, broadcasters and bracket paths for the 2026 FIFA World Cup. Switch between Australia and England." },
+      { name: "description", content: "Live fixtures, scores, group tables and broadcasters for the 2026 FIFA World Cup. Switch between Australia and England." },
     ],
   }),
   component: Tracker,
@@ -17,10 +19,28 @@ export const Route = createFileRoute("/")({
 
 type Filter = Stage | "ALL" | "ENGLAND";
 
+const FALLBACK_GROUPS: GroupTable[] = [
+  { group: "E", rows: ENGLAND_GROUP_TABLE.map(r => ({ ...r, name: getTeam(r.code).name })) },
+];
+
 function Tracker() {
   const [region, setRegion] = useState<Region>("UK");
   const [filter, setFilter] = useState<Filter>("ALL");
   const [now, setNow] = useState(new Date());
+
+  const { data, isError } = useQuery({
+    queryKey: ["worldcup"],
+    queryFn: () => getWorldCup(),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+  });
+
+  const matches: Match[] = data?.matches?.length ? data.matches : FALLBACK_MATCHES;
+  const groups: GroupTable[] = data?.groups?.length ? data.groups : FALLBACK_GROUPS;
+  const crests = data?.crests ?? {};
+  const liveNames = data?.names ?? {};
+  const isLive = !!data && data.matches.length > 0 && !isError;
 
   useEffect(() => {
     const saved = (typeof window !== "undefined" && localStorage.getItem("wc-region")) as Region | null;
@@ -34,8 +54,8 @@ function Tracker() {
   }, [region]);
 
   const sorted = useMemo(
-    () => [...MATCHES].sort((a, b) => a.kickoffUTC.localeCompare(b.kickoffUTC)),
-    []
+    () => [...matches].sort((a, b) => a.kickoffUTC.localeCompare(b.kickoffUTC)),
+    [matches]
   );
 
   const filtered = useMemo(() => {
@@ -52,6 +72,15 @@ function Tracker() {
   const live = sorted.filter(m => matchStatus(m, now) === "LIVE");
   const bc = BROADCASTERS[region];
 
+  const teamView = (code: string) => {
+    const base = getTeam(code);
+    return {
+      ...base,
+      name: liveNames[code] ?? base.name,
+      crest: crests[code],
+    };
+  };
+
   return (
     <div className="min-h-screen bg-hero">
       {/* Header */}
@@ -60,8 +89,17 @@ function Tracker() {
           <div className="flex items-center gap-2.5">
             <div className="size-8 rounded-lg bg-brand-gradient grid place-items-center text-sm shadow-glow">⚽</div>
             <div className="leading-tight">
-              <div className="text-sm font-bold tracking-tight">World Cup 26</div>
-              <div className="text-[10px] text-muted-foreground tracking-wide">USA · Canada · Mexico</div>
+              <div className="text-sm font-bold tracking-tight flex items-center gap-1.5">
+                World Cup 26
+                {isLive && (
+                  <span className="inline-flex items-center gap-1 text-[9px] font-bold text-live">
+                    <span className="size-1.5 rounded-full bg-live animate-live" />LIVE
+                  </span>
+                )}
+              </div>
+              <div className="text-[10px] text-muted-foreground tracking-wide">
+                {isLive ? "Live data · football-data.org" : "USA · Canada · Mexico"}
+              </div>
             </div>
           </div>
           <RegionToggle region={region} setRegion={setRegion} />
@@ -70,17 +108,18 @@ function Tracker() {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
         {/* Hero / Next match */}
-        {nextMatch && <NextMatchCard match={nextMatch} region={region} now={now} broadcaster={bc.channel} />}
+        {nextMatch && <NextMatchCard match={nextMatch} region={region} now={now} broadcaster={bc.channel} teamView={teamView} />}
 
         {/* Live strip */}
         {live.length > 0 && (
           <section className="animate-fade-up">
             <SectionTitle label="Live now" accent />
             <div className="grid sm:grid-cols-2 gap-3">
-              {live.map(m => <MatchCard key={m.id} match={m} region={region} now={now} />)}
+              {live.map(m => <MatchCard key={m.id} match={m} region={region} now={now} teamView={teamView} />)}
             </div>
           </section>
         )}
+
 
         {/* Filters */}
         <section className="space-y-3">
@@ -107,15 +146,18 @@ function Tracker() {
         </section>
 
         {/* England spotlight */}
-        {filter === "ENGLAND" && <EnglandPanel now={now} />}
+        {filter === "ENGLAND" && (
+          <EnglandPanel now={now} matches={matches} groups={groups} teamView={teamView} />
+        )}
 
         {/* Matches grouped by day */}
         <section>
-          <DayGroupedList matches={filtered} region={region} now={now} />
+          <DayGroupedList matches={filtered} region={region} now={now} teamView={teamView} />
           {filtered.length === 0 && (
             <div className="text-muted-foreground text-sm text-center py-12">No matches for this filter.</div>
           )}
         </section>
+
 
         {/* How to watch */}
         <section>
@@ -216,7 +258,9 @@ function FilterPill({ active, onClick, children }: { active: boolean; onClick: (
   );
 }
 
-function NextMatchCard({ match, region, now, broadcaster }: { match: Match; region: Region; now: Date; broadcaster: string }) {
+type TeamView = (code: string) => { code: string; name: string; flag: string; group?: string; crest?: string };
+
+function NextMatchCard({ match, region, now, broadcaster, teamView }: { match: Match; region: Region; now: Date; broadcaster: string; teamView: TeamView }) {
   const { day, time, tzLabel } = formatKickoff(match.kickoffUTC, region);
   const status = matchStatus(match, now);
   const countdown = useCountdown(match.kickoffUTC, now);
@@ -239,17 +283,17 @@ function NextMatchCard({ match, region, now, broadcaster }: { match: Match; regi
               {match.stage}{match.group ? ` · Group ${match.group}` : ""}
             </span>
           </div>
-          <span className="text-xs text-muted-foreground">{match.city}</span>
+          {match.city && <span className="text-xs text-muted-foreground">{match.city}</span>}
         </div>
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-8">
-          <TeamBlock code={match.homeCode} align="right" />
+          <TeamBlock team={teamView(match.homeCode)} align="right" />
           <div className="text-center">
             <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{day}</div>
             <div className="text-3xl sm:text-4xl font-bold tracking-tight mt-1 tabular-nums">{time}</div>
             <div className="text-[10px] text-muted-foreground mt-0.5">{tzLabel}</div>
           </div>
-          <TeamBlock code={match.awayCode} align="left" />
+          <TeamBlock team={teamView(match.awayCode)} align="left" />
         </div>
 
         <div className="mt-7 pt-5 border-t border-border flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -260,29 +304,44 @@ function NextMatchCard({ match, region, now, broadcaster }: { match: Match; regi
           {status !== "LIVE" && (
             <div className="font-mono tabular-nums text-brand font-bold">{countdown}</div>
           )}
-          <div className="text-muted-foreground truncate max-w-[60%]">📍 {match.venue}</div>
+          {match.venue && <div className="text-muted-foreground truncate max-w-[60%]">📍 {match.venue}</div>}
         </div>
       </div>
     </div>
   );
 }
 
-function TeamBlock({ code, align }: { code: string; align: "left" | "right" }) {
-  const t = getTeam(code);
+function TeamBadge({ team, size = "md" }: { team: ReturnType<TeamView>; size?: "sm" | "md" | "lg" }) {
+  const dim = size === "lg" ? "size-14 sm:size-16 text-3xl sm:text-4xl" : size === "sm" ? "size-5 text-base" : "size-8 text-xl";
+  const radius = size === "sm" ? "rounded-md" : "rounded-xl";
+  if (team.crest) {
+    return (
+      <div className={`${dim} ${radius} bg-surface-2 ring-hairline grid place-items-center overflow-hidden shrink-0`}>
+        <img src={team.crest} alt="" className="w-[70%] h-[70%] object-contain" loading="lazy" />
+      </div>
+    );
+  }
+  return (
+    <div className={`${dim} ${radius} bg-surface-2 ring-hairline grid place-items-center shrink-0`}>
+      <span>{team.flag}</span>
+    </div>
+  );
+}
+
+
+function TeamBlock({ team, align }: { team: ReturnType<TeamView>; align: "left" | "right" }) {
   return (
     <div className={`flex flex-col gap-2 ${align === "right" ? "items-end text-right" : "items-start text-left"}`}>
-      <div className="size-14 sm:size-16 rounded-2xl bg-surface-2 ring-hairline grid place-items-center text-3xl sm:text-4xl">
-        {t.flag}
-      </div>
+      <TeamBadge team={team} size="lg" />
       <div>
-        <div className="text-sm sm:text-base font-bold leading-tight">{t.name}</div>
-        {t.group && <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Group {t.group}</div>}
+        <div className="text-sm sm:text-base font-bold leading-tight">{team.name}</div>
+        {team.group && <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Group {team.group}</div>}
       </div>
     </div>
   );
 }
 
-function DayGroupedList({ matches, region, now }: { matches: Match[]; region: Region; now: Date }) {
+function DayGroupedList({ matches, region, now, teamView }: { matches: Match[]; region: Region; now: Date; teamView: TeamView }) {
   const groups = useMemo(() => {
     const map = new Map<string, Match[]>();
     for (const m of matches) {
@@ -305,7 +364,7 @@ function DayGroupedList({ matches, region, now }: { matches: Match[]; region: Re
           <div className="space-y-2">
             {list.map((m, i) => (
               <div key={m.id} className="animate-fade-up" style={{ animationDelay: `${Math.min(i, 6) * 25}ms` }}>
-                <MatchCard match={m} region={region} now={now} />
+                <MatchCard match={m} region={region} now={now} teamView={teamView} />
               </div>
             ))}
           </div>
@@ -315,9 +374,9 @@ function DayGroupedList({ matches, region, now }: { matches: Match[]; region: Re
   );
 }
 
-function MatchCard({ match, region, now }: { match: Match; region: Region; now: Date }) {
-  const home = getTeam(match.homeCode);
-  const away = getTeam(match.awayCode);
+function MatchCard({ match, region, now, teamView }: { match: Match; region: Region; now: Date; teamView: TeamView }) {
+  const home = teamView(match.homeCode);
+  const away = teamView(match.awayCode);
   const { time, tzLabel } = formatKickoff(match.kickoffUTC, region);
   const status = matchStatus(match, now);
 
@@ -342,7 +401,7 @@ function MatchCard({ match, region, now }: { match: Match; region: Region; now: 
           </div>
 
           {/* Teams */}
-          <div className="min-w-0 space-y-1">
+          <div className="min-w-0 space-y-1.5">
             <TeamRow team={home} score={match.homeScore} status={status} />
             <TeamRow team={away} score={match.awayScore} status={status} />
           </div>
@@ -352,7 +411,7 @@ function MatchCard({ match, region, now }: { match: Match; region: Region; now: 
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
               {shortStage(match.stage)}{match.group ? ` · ${match.group}` : ""}
             </div>
-            <div className="text-[10px] text-muted-foreground/70 mt-0.5 truncate max-w-[140px]">{match.city}</div>
+            {match.city && <div className="text-[10px] text-muted-foreground/70 mt-0.5 truncate max-w-[140px]">{match.city}</div>}
           </div>
         </div>
 
@@ -366,12 +425,16 @@ function MatchCard({ match, region, now }: { match: Match; region: Region; now: 
   );
 }
 
-function TeamRow({ team, score, status }: { team: ReturnType<typeof getTeam>; score?: number; status: "FT" | "LIVE" | "UPCOMING" }) {
+function TeamRow({ team, score, status }: { team: ReturnType<TeamView>; score?: number; status: "FT" | "LIVE" | "UPCOMING" }) {
   const isTbd = team.code === "TBD";
   return (
     <div className="flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2.5 min-w-0">
-        <span className="text-lg leading-none w-5 text-center">{team.flag}</span>
+      <div className="flex items-center gap-2 min-w-0">
+        {team.crest ? (
+          <img src={team.crest} alt="" className="size-5 object-contain shrink-0" loading="lazy" />
+        ) : (
+          <span className="text-lg leading-none w-5 text-center">{team.flag}</span>
+        )}
         <span className={`text-sm font-semibold truncate ${isTbd ? "text-muted-foreground" : ""}`}>{team.name}</span>
       </div>
       {typeof score === "number" && (
@@ -383,10 +446,12 @@ function TeamRow({ team, score, status }: { team: ReturnType<typeof getTeam>; sc
   );
 }
 
-function EnglandPanel({ now }: { now: Date }) {
-  const englandMatches = MATCHES.filter(m => m.homeCode === "ENG" || m.awayCode === "ENG");
+function EnglandPanel({ now, matches, groups, teamView }: { now: Date; matches: Match[]; groups: GroupTable[]; teamView: TeamView }) {
+  const englandMatches = matches.filter(m => m.homeCode === "ENG" || m.awayCode === "ENG");
   const next = englandMatches.find(m => matchStatus(m, now) !== "FT");
   const nextCountdown = useCountdown(next?.kickoffUTC ?? new Date().toISOString(), now);
+  const groupE = groups.find(g => g.rows.some(r => r.code === "ENG")) ?? groups.find(g => g.group === "E");
+  const rows = groupE?.rows ?? [];
 
   return (
     <section className="rounded-2xl ring-hairline bg-surface p-5 sm:p-6 shadow-soft animate-fade-up overflow-hidden relative">
@@ -397,67 +462,71 @@ function EnglandPanel({ now }: { now: Date }) {
             <div className="size-10 rounded-xl bg-surface-2 ring-hairline grid place-items-center text-xl">🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
             <div>
               <div className="text-base font-bold leading-tight">Three Lions</div>
-              <div className="text-[11px] text-muted-foreground">Group E · {englandMatches.length} fixtures</div>
+              <div className="text-[11px] text-muted-foreground">Group {groupE?.group ?? "E"} · {englandMatches.length} fixtures</div>
             </div>
           </div>
           {next && (
             <div className="text-right">
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Next</div>
               <div className="text-sm font-semibold">
-                vs {getTeam(next.homeCode === "ENG" ? next.awayCode : next.homeCode).name}
+                vs {teamView(next.homeCode === "ENG" ? next.awayCode : next.homeCode).name}
               </div>
               <div className="text-[11px] text-brand font-mono">{nextCountdown}</div>
             </div>
           )}
         </div>
 
-        <div className="rounded-xl ring-hairline overflow-hidden bg-background/40">
-          <table className="w-full text-sm">
-            <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              <tr className="border-b border-border">
-                <th className="text-left px-3 py-2 font-semibold">#</th>
-                <th className="text-left px-1 py-2 font-semibold">Team</th>
-                <th className="px-2 py-2 font-semibold">P</th>
-                <th className="px-2 py-2 font-semibold">W</th>
-                <th className="px-2 py-2 font-semibold">D</th>
-                <th className="px-2 py-2 font-semibold">L</th>
-                <th className="px-2 py-2 font-semibold">GD</th>
-                <th className="px-2 py-2 font-semibold text-brand">Pts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ENGLAND_GROUP_TABLE.map((row, i) => {
-                const t = getTeam(row.code);
-                const isEng = row.code === "ENG";
-                return (
-                  <tr key={row.code} className={`border-t border-border ${isEng ? "bg-brand-soft" : ""}`}>
-                    <td className="px-3 py-2 text-muted-foreground tabular-nums">{i + 1}</td>
-                    <td className="px-1 py-2">
-                      <span className="inline-flex items-center gap-2">
-                        <span>{t.flag}</span>
-                        <span className={isEng ? "font-bold text-brand" : "font-medium"}>{t.name}</span>
-                      </span>
-                    </td>
-                    <td className="text-center px-2 py-2 tabular-nums">{row.P}</td>
-                    <td className="text-center px-2 py-2 tabular-nums">{row.W}</td>
-                    <td className="text-center px-2 py-2 tabular-nums">{row.D}</td>
-                    <td className="text-center px-2 py-2 tabular-nums">{row.L}</td>
-                    <td className="text-center px-2 py-2 tabular-nums">{row.GF - row.GA > 0 ? `+${row.GF - row.GA}` : row.GF - row.GA}</td>
-                    <td className="text-center px-2 py-2 tabular-nums font-bold text-brand">{row.Pts}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        {rows.length > 0 && (
+          <div className="rounded-xl ring-hairline overflow-hidden bg-background/40">
+            <table className="w-full text-sm">
+              <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <tr className="border-b border-border">
+                  <th className="text-left px-3 py-2 font-semibold">#</th>
+                  <th className="text-left px-1 py-2 font-semibold">Team</th>
+                  <th className="px-2 py-2 font-semibold">P</th>
+                  <th className="px-2 py-2 font-semibold">W</th>
+                  <th className="px-2 py-2 font-semibold">D</th>
+                  <th className="px-2 py-2 font-semibold">L</th>
+                  <th className="px-2 py-2 font-semibold">GD</th>
+                  <th className="px-2 py-2 font-semibold text-brand">Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => {
+                  const t = teamView(row.code);
+                  const isEng = row.code === "ENG";
+                  const gd = row.GF - row.GA;
+                  return (
+                    <tr key={row.code} className={`border-t border-border ${isEng ? "bg-brand-soft" : ""}`}>
+                      <td className="px-3 py-2 text-muted-foreground tabular-nums">{i + 1}</td>
+                      <td className="px-1 py-2">
+                        <span className="inline-flex items-center gap-2">
+                          {t.crest ? <img src={t.crest} alt="" className="size-4 object-contain" /> : <span>{t.flag}</span>}
+                          <span className={isEng ? "font-bold text-brand" : "font-medium"}>{t.name}</span>
+                        </span>
+                      </td>
+                      <td className="text-center px-2 py-2 tabular-nums">{row.P}</td>
+                      <td className="text-center px-2 py-2 tabular-nums">{row.W}</td>
+                      <td className="text-center px-2 py-2 tabular-nums">{row.D}</td>
+                      <td className="text-center px-2 py-2 tabular-nums">{row.L}</td>
+                      <td className="text-center px-2 py-2 tabular-nums">{gd > 0 ? `+${gd}` : gd}</td>
+                      <td className="text-center px-2 py-2 tabular-nums font-bold text-brand">{row.Pts}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="mt-4 text-[11px] text-muted-foreground leading-relaxed">
-          Projected route · <span className="text-foreground font-medium">R32 → R16 → QF (possible France) → SF → Final at MetLife, 19 Jul</span>
+          Projected route · <span className="text-foreground font-medium">R32 → R16 → QF → SF → Final at MetLife, 19 Jul</span>
         </div>
       </div>
     </section>
   );
 }
+
 
 function useCountdown(targetUTC: string, now: Date) {
   const diff = new Date(targetUTC).getTime() - now.getTime();
