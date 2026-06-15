@@ -763,14 +763,12 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
   );
 }
 
-function FeedRow({ match, now, teamView, label, reminderOn, mounted, onToggleReminder }: {
+function FeedRow({ match, teamView, label }: {
   match: Match; now: Date; teamView: TeamView; label: string;
-  reminderOn?: boolean; mounted?: boolean; onToggleReminder?: () => void;
 }) {
   const home = teamView(match.homeCode);
   const away = teamView(match.awayCode);
   const dual = dualKickoff(match.kickoffUTC);
-  const canRemind = !!onToggleReminder;
   return (
     <div className="rounded-lg bg-surface ring-hairline p-3 sm:p-4">
       <div className="flex items-center justify-between gap-3 mb-1.5">
@@ -785,16 +783,6 @@ function FeedRow({ match, now, teamView, label, reminderOn, mounted, onToggleRem
           {dual.uk.time} {dual.uk.tz}
         </div>
       </div>
-      {canRemind && mounted && (
-        <div className="mt-2 flex items-center justify-end">
-          <button
-            onClick={onToggleReminder}
-            className={`font-display text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full ring-hairline transition-colors duration-200 ${reminderOn ? "bg-pitch text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}
-          >
-            {reminderOn ? "Reminder on" : "Remind me"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
