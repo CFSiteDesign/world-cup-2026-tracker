@@ -170,6 +170,7 @@ function ResultsPage() {
           <div className="label-micro">Data · football-data.org</div>
         </footer>
       </main>
+      <MobileTabBar />
     </div>
   );
 }

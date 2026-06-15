@@ -245,6 +245,7 @@ function PredictPage() {
           <div className="label-micro">Shared board</div>
         </footer>
       </main>
+      <MobileTabBar />
     </div>
   );
 }

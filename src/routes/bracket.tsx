@@ -182,6 +182,7 @@ function BracketPage() {
           Click any tie to see venue and dual kickoff times.
         </div>
       </main>
+      <MobileTabBar />
     </div>
   );
 }
