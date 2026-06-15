@@ -396,9 +396,6 @@ function HeroMatch({ match, region, now, broadcaster, teamView }: {
               </span>
             </div>
           )}
-          {status !== "FT" && (
-            <AddToCalendarButton match={match} teamView={teamView} />
-          )}
         </div>
       </div>
     </article>
