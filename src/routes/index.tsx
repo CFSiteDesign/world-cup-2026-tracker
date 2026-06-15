@@ -737,10 +737,8 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
             <FeedRow
               key={m.id} match={m} now={now} teamView={teamView}
               label="England play"
-              reminderOn={!!reminders[m.id]}
-              mounted={mounted}
-              onToggleReminder={() => toggleReminder(m.id)}
             />
+
           ))}
           {rivalMatches.filter(m => matchStatus(m, now) !== "FT").map(m => (
             <FeedRow
