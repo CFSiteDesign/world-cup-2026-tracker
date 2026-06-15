@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
-  MATCHES, STAGES, BROADCASTERS, TIMEZONES, ENGLAND_GROUP_TABLE,
+  MATCHES as FALLBACK_MATCHES, STAGES, BROADCASTERS, TIMEZONES, ENGLAND_GROUP_TABLE,
   getTeam, formatKickoff, matchStatus, type Region, type Match, type Stage,
 } from "@/lib/worldcup-data";
+import { getWorldCup, type GroupTable } from "@/lib/worldcup.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "World Cup 2026 Tracker — Every Match, Every Time" },
-      { name: "description", content: "Fixtures, kickoff times, broadcasters and bracket paths for the 2026 FIFA World Cup. Switch between Australia and England." },
+      { name: "description", content: "Live fixtures, scores, group tables and broadcasters for the 2026 FIFA World Cup. Switch between Australia and England." },
     ],
   }),
   component: Tracker,
@@ -17,10 +19,28 @@ export const Route = createFileRoute("/")({
 
 type Filter = Stage | "ALL" | "ENGLAND";
 
+const FALLBACK_GROUPS: GroupTable[] = [
+  { group: "E", rows: ENGLAND_GROUP_TABLE.map(r => ({ ...r, name: getTeam(r.code).name })) },
+];
+
 function Tracker() {
   const [region, setRegion] = useState<Region>("UK");
   const [filter, setFilter] = useState<Filter>("ALL");
   const [now, setNow] = useState(new Date());
+
+  const { data, isError } = useQuery({
+    queryKey: ["worldcup"],
+    queryFn: () => getWorldCup(),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+  });
+
+  const matches: Match[] = data?.matches?.length ? data.matches : FALLBACK_MATCHES;
+  const groups: GroupTable[] = data?.groups?.length ? data.groups : FALLBACK_GROUPS;
+  const crests = data?.crests ?? {};
+  const liveNames = data?.names ?? {};
+  const isLive = !!data && data.matches.length > 0 && !isError;
 
   useEffect(() => {
     const saved = (typeof window !== "undefined" && localStorage.getItem("wc-region")) as Region | null;
@@ -34,8 +54,8 @@ function Tracker() {
   }, [region]);
 
   const sorted = useMemo(
-    () => [...MATCHES].sort((a, b) => a.kickoffUTC.localeCompare(b.kickoffUTC)),
-    []
+    () => [...matches].sort((a, b) => a.kickoffUTC.localeCompare(b.kickoffUTC)),
+    [matches]
   );
 
   const filtered = useMemo(() => {
@@ -51,6 +71,15 @@ function Tracker() {
 
   const live = sorted.filter(m => matchStatus(m, now) === "LIVE");
   const bc = BROADCASTERS[region];
+
+  const teamView = (code: string) => {
+    const base = getTeam(code);
+    return {
+      ...base,
+      name: liveNames[code] ?? base.name,
+      crest: crests[code],
+    };
+  };
 
   return (
     <div className="min-h-screen bg-hero">
