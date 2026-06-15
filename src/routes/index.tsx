@@ -8,7 +8,6 @@ import {
 import { getWorldCup, type GroupTable } from "@/lib/worldcup.functions";
 import {
   ENG, isGroupEMatch, dualKickoff, englandScenarios,
-  buildEnglandIcs, downloadIcs, addMatchToCalendar,
 } from "@/lib/england-utils";
 import { MobileTabBar } from "@/components/MobileTabBar";
 import { EnglandCountdown } from "@/components/EnglandCountdown";
@@ -397,9 +396,6 @@ function HeroMatch({ match, region, now, broadcaster, teamView }: {
               </span>
             </div>
           )}
-          {status !== "FT" && (
-            <AddToCalendarButton match={match} teamView={teamView} />
-          )}
         </div>
       </div>
     </article>
@@ -537,46 +533,12 @@ function MatchCard({ match, region, now, teamView }: { match: Match; region: Reg
             {match.venue || ""}{match.venue && match.city ? " · " : ""}{match.city || ""}
             {match.bracketNote ? (match.venue || match.city ? " · " : "") + match.bracketNote : ""}
           </div>
-          {status !== "FT" && (
-            <AddToCalendarButton match={match} teamView={teamView} />
-          )}
         </div>
       </div>
     </article>
   );
 }
 
-function AddToCalendarButton({ match, teamView }: { match: Match; teamView: TeamView }) {
-  const handle = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const names: Record<string, string> = {
-      [match.homeCode]: teamView(match.homeCode).name,
-      [match.awayCode]: teamView(match.awayCode).name,
-    };
-    try {
-      await addMatchToCalendar(match, names);
-      toast.success("Added to calendar", { description: `${names[match.homeCode]} vs ${names[match.awayCode]}` });
-    } catch (err) {
-      toast.error("Couldn't open calendar", { description: err instanceof Error ? err.message : "Try again" });
-    }
-  };
-  return (
-    <button
-      type="button"
-      onClick={handle}
-      aria-label="Add match to calendar"
-      className="shrink-0 inline-flex items-center gap-1.5 rounded-md ring-hairline bg-surface px-2.5 py-1.5 font-display text-[10px] font-extrabold uppercase tracking-wider text-foreground hover:text-pitch hover:ring-[color:var(--pitch)] transition-colors duration-200"
-    >
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" aria-hidden="true">
-        <rect x="3" y="5" width="18" height="16" rx="1" />
-        <path d="M3 9h18M8 3v4M16 3v4M12 13v4M10 15h4" />
-      </svg>
-      <span className="sm:hidden">Calendar</span>
-      <span className="hidden sm:inline">Add to calendar</span>
-    </button>
-  );
-}
 
 
 
@@ -720,15 +682,6 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
     setReminders(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const downloadCalendar = async () => {
-    try {
-      const ics = buildEnglandIcs(englandMatches);
-      await downloadIcs("england-world-cup-2026.ics", ics, "England World Cup 26 fixtures");
-      toast.success("England calendar opened", { description: `${englandMatches.length} fixtures` });
-    } catch (err) {
-      toast.error("Couldn't open calendar", { description: err instanceof Error ? err.message : "Try again" });
-    }
-  };
 
   return (
     <section className="rounded-xl bg-card shadow-elevated p-6 sm:p-8 animate-fade-up">
@@ -853,17 +806,6 @@ function EnglandPanel({ now, matches, groups, teamView, region }: {
             <div className="label-micro">Nothing on the radar right now.</div>
           )}
         </div>
-      </div>
-
-      {/* Calendar export */}
-      <div className="hairline-t pt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="label-micro">Take it with you</div>
-        <button
-          onClick={downloadCalendar}
-          className="font-display text-xs font-extrabold uppercase tracking-wider px-3 py-2 rounded-lg bg-pitch text-background hover:opacity-90 transition-opacity"
-        >
-          Add England calendar
-        </button>
       </div>
     </section>
   );
