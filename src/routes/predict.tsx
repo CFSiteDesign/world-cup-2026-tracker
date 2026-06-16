@@ -277,8 +277,8 @@ function SectionHeader({ label }: { label: string }) {
   );
 }
 
-function PredictionRow({ match, now, mounted, player, preds, teamName, teamView, onChange }: {
-  match: Match; now: Date; mounted: boolean; player: string;
+function PredictionRow({ match, now, mounted, player, region, preds, teamName, teamView, onChange }: {
+  match: Match; now: Date; mounted: boolean; player: string; region: Region;
   preds: Prediction[]; teamName: (c: string) => string;
   teamView: (c: string) => { code: string; name: string; crest?: string; flag?: string };
   onChange: () => void;
