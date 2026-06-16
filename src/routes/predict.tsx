@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  MATCHES as FALLBACK_MATCHES, getTeam, matchStatus, type Match,
+  MATCHES as FALLBACK_MATCHES, getTeam, matchStatus, type Match, type Region,
 } from "@/lib/worldcup-data";
 import { getWorldCup } from "@/lib/worldcup.functions";
 import {
@@ -28,15 +28,22 @@ function PredictPage() {
   const [mounted, setMounted] = useState(false);
   const [player, setPlayer] = useState<string>("");
   const [nameInput, setNameInput] = useState("");
+  const [region, setRegion] = useState<Region>("UK");
   const qc = useQueryClient();
 
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("wc-player");
     if (saved) setPlayer(saved);
+    const savedRegion = localStorage.getItem("wc-region");
+    if (savedRegion === "AU" || savedRegion === "UK") setRegion(savedRegion);
     const i = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(i);
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("wc-region", region);
+  }, [region]);
 
   const { data: wc } = useQuery({
     queryKey: ["worldcup"],
@@ -135,16 +142,19 @@ function PredictPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-10 pb-28 sm:pb-12">
-        <div>
-          <div className="font-display text-xs font-extrabold uppercase tracking-[0.14em] text-pitch mb-2">
-            Group board
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="font-display text-xs font-extrabold uppercase tracking-[0.14em] text-pitch mb-2">
+              Group board
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight">
+              England score predictions
+            </h1>
+            <div className="label-micro mt-3">
+              3 pts exact scoreline · 1 pt correct result · locks at kickoff
+            </div>
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight">
-            England score predictions
-          </h1>
-          <div className="label-micro mt-3">
-            3 pts exact scoreline · 1 pt correct result · locks at kickoff
-          </div>
+          <RegionToggle region={region} setRegion={setRegion} />
         </div>
 
         <EnglandCountdown matches={matches} names={liveNames} variant="banner" />
@@ -202,6 +212,7 @@ function PredictPage() {
                   now={now}
                   mounted={mounted}
                   player={player}
+                  region={region}
                   preds={preds ?? []}
                   teamName={teamName}
                   teamView={teamView}
@@ -266,8 +277,8 @@ function SectionHeader({ label }: { label: string }) {
   );
 }
 
-function PredictionRow({ match, now, mounted, player, preds, teamName, teamView, onChange }: {
-  match: Match; now: Date; mounted: boolean; player: string;
+function PredictionRow({ match, now, mounted, player, region, preds, teamName, teamView, onChange }: {
+  match: Match; now: Date; mounted: boolean; player: string; region: Region;
   preds: Prediction[]; teamName: (c: string) => string;
   teamView: (c: string) => { code: string; name: string; crest?: string; flag?: string };
   onChange: () => void;
@@ -332,8 +343,9 @@ function PredictionRow({ match, now, mounted, player, preds, teamName, teamView,
         ) : (
           mounted && (
             <div className="text-right leading-tight">
-              <div className="font-display text-xs font-extrabold tabular-nums">{dual.uk.time} {dual.uk.tz}</div>
-              <div className="label-micro">{dual.au.time} {dual.au.tz} ({dual.au.day})</div>
+              <div className="font-display text-xs font-extrabold tabular-nums">
+                {region === "UK" ? `${dual.uk.time} ${dual.uk.tz}` : `${dual.au.time} ${dual.au.tz} (${dual.au.day})`}
+              </div>
             </div>
           )
         )}
@@ -417,4 +429,27 @@ function PredictCrest({ team }: { team: { code: string; name: string; crest?: st
     </div>
   );
 }
+
+function RegionToggle({ region, setRegion }: { region: Region; setRegion: (r: Region) => void }) {
+  return (
+    <div className="relative inline-flex p-1 rounded-full bg-card ring-hairline">
+      <div
+        className="absolute top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-full bg-pitch transition-transform duration-200 ease-out"
+        style={{ transform: region === "UK" ? "translateX(0)" : "translateX(100%)" }}
+      />
+      {(["UK", "AU"] as Region[]).map(r => (
+        <button
+          key={r}
+          onClick={() => setRegion(r)}
+          className={`relative z-10 px-3 sm:px-4 py-1 sm:py-1.5 font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider rounded-full transition-colors duration-200 ${
+            region === r ? "text-background" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {r === "UK" ? "UK" : "AUS"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 
