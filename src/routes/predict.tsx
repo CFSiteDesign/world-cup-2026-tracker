@@ -142,16 +142,19 @@ function PredictPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-10 pb-28 sm:pb-12">
-        <div>
-          <div className="font-display text-xs font-extrabold uppercase tracking-[0.14em] text-pitch mb-2">
-            Group board
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="font-display text-xs font-extrabold uppercase tracking-[0.14em] text-pitch mb-2">
+              Group board
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight">
+              England score predictions
+            </h1>
+            <div className="label-micro mt-3">
+              3 pts exact scoreline · 1 pt correct result · locks at kickoff
+            </div>
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight">
-            England score predictions
-          </h1>
-          <div className="label-micro mt-3">
-            3 pts exact scoreline · 1 pt correct result · locks at kickoff
-          </div>
+          <RegionToggle region={region} setRegion={setRegion} />
         </div>
 
         <EnglandCountdown matches={matches} names={liveNames} variant="banner" />
