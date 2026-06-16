@@ -212,6 +212,7 @@ function PredictPage() {
                   now={now}
                   mounted={mounted}
                   player={player}
+                  region={region}
                   preds={preds ?? []}
                   teamName={teamName}
                   teamView={teamView}
