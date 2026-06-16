@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  MATCHES as FALLBACK_MATCHES, getTeam, matchStatus, type Match,
+  MATCHES as FALLBACK_MATCHES, getTeam, matchStatus, type Match, type Region,
 } from "@/lib/worldcup-data";
 import { getWorldCup } from "@/lib/worldcup.functions";
 import {
