@@ -430,3 +430,26 @@ function PredictCrest({ team }: { team: { code: string; name: string; crest?: st
   );
 }
 
+function RegionToggle({ region, setRegion }: { region: Region; setRegion: (r: Region) => void }) {
+  return (
+    <div className="relative inline-flex p-1 rounded-full bg-card ring-hairline">
+      <div
+        className="absolute top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-full bg-pitch transition-transform duration-200 ease-out"
+        style={{ transform: region === "UK" ? "translateX(0)" : "translateX(100%)" }}
+      />
+      {(["UK", "AU"] as Region[]).map(r => (
+        <button
+          key={r}
+          onClick={() => setRegion(r)}
+          className={`relative z-10 px-3 sm:px-4 py-1 sm:py-1.5 font-display text-[11px] sm:text-xs font-extrabold uppercase tracking-wider rounded-full transition-colors duration-200 ${
+            region === r ? "text-background" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {r === "UK" ? "UK" : "AUS"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+
