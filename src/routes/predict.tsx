@@ -343,8 +343,9 @@ function PredictionRow({ match, now, mounted, player, region, preds, teamName, t
         ) : (
           mounted && (
             <div className="text-right leading-tight">
-              <div className="font-display text-xs font-extrabold tabular-nums">{dual.uk.time} {dual.uk.tz}</div>
-              <div className="label-micro">{dual.au.time} {dual.au.tz} ({dual.au.day})</div>
+              <div className="font-display text-xs font-extrabold tabular-nums">
+                {region === "UK" ? `${dual.uk.time} ${dual.uk.tz}` : `${dual.au.time} ${dual.au.tz} (${dual.au.day})`}
+              </div>
             </div>
           )
         )}
