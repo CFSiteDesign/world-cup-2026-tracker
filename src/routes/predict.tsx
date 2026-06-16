@@ -28,15 +28,22 @@ function PredictPage() {
   const [mounted, setMounted] = useState(false);
   const [player, setPlayer] = useState<string>("");
   const [nameInput, setNameInput] = useState("");
+  const [region, setRegion] = useState<Region>("UK");
   const qc = useQueryClient();
 
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("wc-player");
     if (saved) setPlayer(saved);
+    const savedRegion = localStorage.getItem("wc-region");
+    if (savedRegion === "AU" || savedRegion === "UK") setRegion(savedRegion);
     const i = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(i);
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("wc-region", region);
+  }, [region]);
 
   const { data: wc } = useQuery({
     queryKey: ["worldcup"],
